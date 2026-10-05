@@ -1,0 +1,169 @@
+# Root orchestration compose file.
+#
+# IMPORTANT: none of the 3 original apps' code, Dockerfiles, or internal
+# configs are modified. Each service still listens on port 8000 (backend) /
+# 3000 (frontend) / 5432 (postgres) / 5379(redis) INSIDE its own container —
+# we only change which HOST port each is published on, and give each its own
+# postgres/redis container so the 3 apps never collide.
+#
+# Build context paths assume this file sits next to:
+#   founder-ai-feedback-agent/
+#   founder-ai-final/                 (hiring agent)
+#   support_agent/
+#   orchestrator/
+
+services:
+  # ───────────────────────── Feedback Agent (unchanged) ─────────────────────────
+  feedback-postgres:
+    image: postgres:16-alpine
+    container_name: feedback_postgres
+    environment:
+      POSTGRES_DB: founder_ai_feedback
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    volumes:
+      - feedback_pg_data:/var/lib/postgresql/data
+
+  feedback-redis:
+    image: redis:7-alpine
+    container_name: feedback_redis
+    ports:
+      - "6380:6379"
+
+  feedback-backend:
+    build:
+      context: ./founder-ai-feedback-agent/backend
+    container_name: feedback_backend
+    depends_on:
+      - feedback-postgres
+      - feedback-redis
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:password@feedback-postgres:5432/founder_ai_feedback
+      REDIS_URL: redis://feedback-redis:6379
+      LLM_PROVIDER: ${LLM_PROVIDER:-groq}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+    ports:
+      - "8001:8000"        # <- orchestrator talks to this host port
+
+  feedback-frontend:
+    build:
+      context: ./founder-ai-feedback-agent/frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8001/api/v1
+    container_name: feedback_frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8001/api/v1
+    ports:
+      - "3001:3000"
+
+  # ───────────────────────── Hiring Agent (unchanged) ─────────────────────────
+  hiring-postgres:
+    image: postgres:16-alpine
+    container_name: hiring_postgres
+    environment:
+      POSTGRES_DB: founder_ai
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5434:5432"
+    volumes:
+      - hiring_pg_data:/var/lib/postgresql/data
+
+  hiring-backend:
+    build:
+      context: ./founder-ai-final/backend
+    container_name: hiring_backend
+    depends_on:
+      - hiring-postgres
+    environment:
+      DATABASE_URL: postgresql://postgres:password@hiring-postgres:5432/founder_ai
+      AI_PROVIDER: ${AI_PROVIDER:-groq}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+    ports:
+      - "8002:8000"         # <- orchestrator talks to this host port
+
+  hiring-frontend:
+    build:
+      context: ./founder-ai-final/frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8002
+    container_name: hiring_frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8002
+    ports:
+      - "3002:3000"
+
+  # ───────────────────────── Support Agent (unchanged) ─────────────────────────
+  support-postgres:
+    image: postgres:15-alpine
+    container_name: support_postgres
+    environment:
+      POSTGRES_DB: support_agent
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5435:5432"
+    volumes:
+      - support_pg_data:/var/lib/postgresql/data
+
+  support-redis:
+    image: redis:7-alpine
+    container_name: support_redis
+    ports:
+      - "6381:6379"
+
+  support-backend:
+    build:
+      context: ./support_agent/backend
+    container_name: support_backend
+    depends_on:
+      - support-postgres
+      - support-redis
+    environment:
+      POSTGRES_HOST: support-postgres
+      POSTGRES_PASSWORD: password
+      REDIS_HOST: support-redis
+      LLM_PROVIDER: ${LLM_PROVIDER:-groq}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-120b}
+    ports:
+      - "8003:8000"          # <- orchestrator talks to this host port
+
+  support-frontend:
+    build:
+      context: ./support_agent/frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8003/api
+    container_name: support_frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8003/api
+    ports:
+      - "3003:3000"
+
+  # ───────────────────────── NEW: Orchestrator ─────────────────────────
+  orchestrator:
+    build:
+      context: ./orchestrator
+    container_name: orchestrator
+    depends_on:
+      - feedback-backend
+      - hiring-backend
+      - support-backend
+    environment:
+      FEEDBACK_AGENT_URL: http://feedback-backend:8000
+      HIRING_AGENT_URL: http://hiring-backend:8000
+      SUPPORT_AGENT_URL: http://support-backend:8000
+      LLM_PROVIDER: ${LLM_PROVIDER:-groq}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+    ports:
+      - "8000:8000"          # single public entry point for the whole system
+
+volumes:
+  feedback_pg_data:
+  hiring_pg_data:
+  support_pg_data:
+
+
+

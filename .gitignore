@@ -1,0 +1,32 @@
+# Environment files (contain API keys — NEVER push these)
+.env
+**/.env
+*.env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+**/venv/
+
+# Node
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+
+# Uploads and generated data
+uploads/
+**/uploads/
+chroma_db/
+**/chroma_db/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+.env.*
+!.env.example
+**/.env.local
+*.db
+backend_log.txt

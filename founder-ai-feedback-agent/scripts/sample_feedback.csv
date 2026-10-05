@@ -1,0 +1,26 @@
+feedback_id,customer_id,feedback_text,rating,date
+1,c001,The app keeps crashing whenever I try to make a payment. This is unacceptable!,1,2024-01-15
+2,c002,I love the new dashboard design. So much easier to navigate. Great work!,5,2024-01-15
+3,c003,Please add dark mode. I use the app at night and it is way too bright.,4,2024-01-16
+4,c004,Customer support took 5 days to respond and still did not solve my problem.,2,2024-01-16
+5,c005,The loading time is extremely slow. Reports take forever to generate.,2,2024-01-17
+6,c006,Would love a mobile app for iOS and Android. Desktop only is limiting.,3,2024-01-17
+7,c007,Login keeps failing with 2FA. I have been locked out for 3 days.,1,2024-01-18
+8,c008,Overall great product. Very happy with the analytics features.,5,2024-01-18
+9,c009,Can you please add CSV export? I need to share data with my team.,4,2024-01-19
+10,c010,The billing page is confusing and I was charged twice this month. Need refund.,1,2024-01-19
+11,c011,Really impressed with the sentiment analysis accuracy.,5,2024-01-20
+12,c012,I wish there was an offline mode. My internet is unreliable.,3,2024-01-20
+13,c013,App crashed 3 times today. Lost all my unsaved work. Serious bug!,1,2024-01-21
+14,c014,Team collaboration features are excellent. We work together seamlessly.,5,2024-01-21
+15,c015,Please integrate with Slack for alerts when new feedback comes in.,4,2024-01-22
+16,c016,Password reset emails are not arriving. Cannot access my account.,1,2024-01-22
+17,c017,Topic modeling feature is brilliant. Identified our pain points automatically.,5,2024-01-23
+18,c018,Would love multi-language support. Customers write in Spanish and French.,3,2024-01-23
+19,c019,Subscription cancellation is too complicated. Took 30 minutes to cancel.,2,2024-01-24
+20,c020,The AI chat is incredibly useful. Answers questions about data instantly.,5,2024-01-24
+21,c021,Performance has degraded significantly in the last week. Everything is slow.,2,2024-01-25
+22,c022,Please add SSO support. We use Google Workspace and need single sign-on.,4,2024-01-25
+23,c023,Report generation saved hours of manual work. PDF output looks professional.,5,2024-01-26
+24,c024,Error 500 when uploading large CSV files. System should handle bigger files.,2,2024-01-26
+25,c025,Amazing product. Feature request detection helps us prioritize our roadmap.,5,2024-01-27

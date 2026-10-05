@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Founder AI — Multi-Agent Command Center</title>
+<style>
+  :root{
+    --bg:#F5F6FA;
+    --surface:#FFFFFF;
+    --surface-muted:#FAFBFC;
+    --border:#E3E6EC;
+    --border-strong:#D3D7E0;
+    --text:#161922;
+    --text-muted:#68707F;
+    --text-faint:#9AA1AE;
+    --primary:#3934D6;
+    --primary-hover:#2E29B8;
+    --primary-tint:#EEEEFC;
+    --accent:#0D9C8A;
+    --accent-tint:#E4F7F4;
+    --success:#15803D;
+    --success-tint:#E8F6ED;
+    --warning:#B45309;
+    --warning-tint:#FDF0E1;
+    --error:#C0152F;
+    --error-tint:#FCE9EB;
+    --radius-sm:6px;
+    --radius:10px;
+    --radius-lg:14px;
+    --shadow-sm:0 1px 2px rgba(22,25,34,0.06);
+    --shadow:0 4px 16px rgba(22,25,34,0.08);
+    --sidebar-w:248px;
+    --header-h:60px;
+  }
+
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,"Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    font-size:14px;
+    line-height:1.5;
+  }
+  h1,h2,h3,h4{margin:0;font-weight:600;letter-spacing:-0.01em;}
+  p{margin:0;}
+  button{font-family:inherit;}
+  a{color:inherit;}
+  ::selection{background:var(--primary-tint);}
+  :focus-visible{outline:2px solid var(--primary);outline-offset:2px;}
+
+  .hidden{display:none !important;}
+  .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}
+
+  /* ───────────────────────── Buttons & form controls ───────────────────────── */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    padding:9px 16px;border-radius:var(--radius-sm);border:1px solid transparent;
+    font-size:13.5px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s;
+    white-space:nowrap;
+  }
+  .btn:disabled{opacity:.55;cursor:not-allowed;}
+  .btn-primary{background:var(--primary);color:#fff;}
+  .btn-primary:hover:not(:disabled){background:var(--primary-hover);}
+  .btn-secondary{background:var(--surface);color:var(--text);border-color:var(--border-strong);}
+  .btn-secondary:hover:not(:disabled){border-color:var(--primary);color:var(--primary);}
+  .btn-ghost{background:transparent;color:var(--text-muted);}
+  .btn-ghost:hover:not(:disabled){background:var(--surface-muted);color:var(--text);}
+  .btn-danger-ghost{background:transparent;color:var(--error);}
+  .btn-danger-ghost:hover:not(:disabled){background:var(--error-tint);}
+  .btn-sm{padding:6px 12px;font-size:12.5px;}
+  .btn-block{width:100%;}
+
+  input[type=text],input[type=email],input[type=password],textarea,select{
+    width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);
+    font-size:13.5px;color:var(--text);background:var(--surface);font-family:inherit;
+  }
+  input:focus,textarea:focus,select:focus{border-color:var(--primary);}
+  label{display:block;font-size:12.5px;font-weight:600;color:var(--text-muted);margin-bottom:6px;}
+  .field{margin-bottom:14px;}
+  .field-hint{font-size:12px;color:var(--text-faint);margin-top:4px;}
+
+  /* ───────────────────────── Status dot / badge ───────────────────────── */
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex:none;}
+  .dot-online{background:var(--success);}
+  .dot-degraded{background:var(--warning);}
+  .dot-offline{background:var(--error);}
+  .dot-unknown{background:var(--text-faint);}
+
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;}
+  .badge-success{background:var(--success-tint);color:var(--success);}
+  .badge-warning{background:var(--warning-tint);color:var(--warning);}
+  .badge-error{background:var(--error-tint);color:var(--error);}
+  .badge-neutral{background:var(--surface-muted);color:var(--text-muted);border:1px solid var(--border);}
+
+  /* ───────────────────────── App shell ───────────────────────── */
+  #app-shell{display:none;height:100vh;flex-direction:column;}
+  #app-shell.active{display:flex;}
+
+  header.top-bar{
+    height:var(--header-h);flex:none;display:flex;align-items:center;justify-content:space-between;
+    padding:0 20px;background:var(--surface);border-bottom:1px solid var(--border);gap:16px;z-index:20;
+  }
+  .brand{display:flex;align-items:center;gap:10px;min-width:0;}
+  .brand-mark{
+    width:32px;height:32px;border-radius:9px;background:var(--primary);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:none;
+  }
+  .brand-text{display:flex;flex-direction:column;line-height:1.2;min-width:0;}
+  .brand-text strong{font-size:14.5px;letter-spacing:-.01em;}
+  .brand-text span{font-size:11.5px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+  #menu-toggle{display:none;}
+
+  .top-bar-right{display:flex;align-items:center;gap:10px;flex:none;}
+  .status-pill{
+    display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;
+    background:var(--surface-muted);border:1px solid var(--border);font-size:12.5px;font-weight:600;
+    cursor:default;
+  }
+  .agent-count-pill{
+    display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;
+    background:var(--surface-muted);border:1px solid var(--border);font-size:12.5px;font-weight:600;color:var(--text-muted);
+  }
+  .user-chip{display:flex;align-items:center;gap:8px;padding:5px 10px 5px 5px;border-radius:999px;background:var(--surface-muted);border:1px solid var(--border);}
+  .user-avatar{width:24px;height:24px;border-radius:50%;background:var(--primary-tint);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:none;}
+  .user-chip span{font-size:12.5px;font-weight:600;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  .body-row{flex:1;display:flex;min-height:0;}
+
+  nav.sidebar{
+    width:var(--sidebar-w);flex:none;background:var(--surface);border-right:1px solid var(--border);
+    padding:16px 12px;overflow-y:auto;
+  }
+  .nav-group-label{font-size:11px;font-weight:700;color:var(--text-faint);text-transform:uppercase;letter-spacing:.05em;margin:16px 10px 6px;}
+  .nav-group-label:first-child{margin-top:4px;}
+  .nav-item{
+    display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius-sm);
+    color:var(--text-muted);font-size:13.5px;font-weight:500;cursor:pointer;margin-bottom:2px;
+    border:1px solid transparent;
+  }
+  .nav-item:hover{background:var(--surface-muted);color:var(--text);}
+  .nav-item.active{background:var(--primary-tint);color:var(--primary);font-weight:600;}
+  .nav-item .nav-icon{width:18px;height:18px;flex:none;display:flex;align-items:center;justify-content:center;}
+  .nav-item .nav-dot{margin-left:auto;}
+
+  #sidebar-backdrop{display:none;}
+
+  main.content{flex:1;overflow-y:auto;padding:24px 28px 60px;min-width:0;}
+  .page{display:none;}
+  .page.active{display:block;animation:fadein .15s ease;}
+  @keyframes fadein{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:none;}}
+
+  .page-header{margin-bottom:20px;}
+  .page-header h2{font-size:20px;}
+  .page-header p{color:var(--text-muted);font-size:13.5px;margin-top:4px;}
+  .page-header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+
+  /* ───────────────────────── Cards / grids ───────────────────────── */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;}
+  .grid{display:grid;gap:14px;}
+  .grid-4{grid-template-columns:repeat(4,1fr);}
+  .grid-3{grid-template-columns:repeat(3,1fr);}
+  .grid-2{grid-template-columns:repeat(2,1fr);}
+  @media (max-width:1080px){.grid-4{grid-template-columns:repeat(2,1fr);} .grid-3{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:640px){.grid-4,.grid-3,.grid-2{grid-template-columns:1fr;}}
+
+  .stat-card{display:flex;flex-direction:column;gap:6px;}
+  .stat-card .stat-label{font-size:12.5px;color:var(--text-muted);font-weight:600;}
+  .stat-card .stat-value{font-size:26px;font-weight:700;letter-spacing:-.02em;}
+  .stat-card .stat-sub{font-size:12px;color:var(--text-faint);}
+
+  .section-title{font-size:14.5px;font-weight:700;margin-bottom:12px;}
+  .subsection{margin-top:26px;}
+
+  .agent-row{
+    display:flex;align-items:center;justify-content:space-between;padding:13px 4px;
+    border-bottom:1px solid var(--border);
+  }
+  .agent-row:last-child{border-bottom:none;}
+  .agent-row-name{display:flex;align-items:center;gap:10px;font-weight:600;font-size:13.5px;}
+  .agent-row-meta{display:flex;align-items:center;gap:14px;color:var(--text-faint);font-size:12px;}
+
+  .empty-state{
+    text-align:center;padding:40px 20px;color:var(--text-muted);
+  }
+  .empty-state .empty-icon{font-size:26px;margin-bottom:10px;opacity:.5;}
+  .empty-state h4{font-size:14px;margin-bottom:6px;color:var(--text);}
+  .empty-state p{font-size:13px;max-width:380px;margin:0 auto 14px;}
+
+  /* ───────────────────────── Agent network diagram ───────────────────────── */
+  .network-wrap{display:flex;justify-content:center;padding:18px 0 6px;}
+  .network-svg{width:100%;max-width:620px;height:auto;}
+  .network-node-label{font-size:12px;font-weight:700;fill:var(--text);}
+  .network-node-sub{font-size:10.5px;fill:var(--text-faint);}
+
+  /* ───────────────────────── Chat ───────────────────────── */
+  .chat-layout{display:flex;flex-direction:column;height:calc(100vh - var(--header-h) - 110px);min-height:460px;}
+  .chat-scroll{
+    flex:1;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;
+    padding:20px;display:flex;flex-direction:column;gap:16px;
+  }
+  .chat-empty{margin:auto;text-align:center;color:var(--text-faint);max-width:360px;}
+  .chat-empty h4{color:var(--text-muted);font-size:14px;margin-bottom:8px;}
+  .msg{display:flex;flex-direction:column;max-width:74%;}
+  .msg.user{align-self:flex-end;align-items:flex-end;}
+  .msg.assistant{align-self:flex-start;align-items:flex-start;}
+  .msg-bubble{padding:11px 14px;border-radius:var(--radius);font-size:13.8px;white-space:pre-wrap;word-wrap:break-word;}
+  .msg.user .msg-bubble{background:var(--primary);color:#fff;border-bottom-right-radius:3px;}
+  .msg.assistant .msg-bubble{background:var(--surface-muted);border:1px solid var(--border);border-bottom-left-radius:3px;}
+  .msg.assistant .msg-bubble.error{background:var(--error-tint);border-color:#F3C6CC;color:#7A0E20;}
+  .msg-meta{display:flex;align-items:center;gap:8px;margin-top:5px;font-size:11px;color:var(--text-faint);}
+  .msg-retry{background:none;border:none;color:var(--error);font-weight:700;cursor:pointer;font-size:11px;padding:0;}
+
+  .exec-panel{margin-top:9px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);overflow:hidden;max-width:100%;}
+  .exec-panel-head{padding:8px 12px;font-size:11.5px;font-weight:700;color:var(--text-muted);background:var(--surface-muted);border-bottom:1px solid var(--border);}
+  .exec-item{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;font-size:12.5px;border-bottom:1px solid var(--border);}
+  .exec-item:last-child{border-bottom:none;}
+  .exec-check{color:var(--success);font-weight:700;flex:none;}
+  .exec-agent{font-weight:700;}
+  .exec-tool{color:var(--text-muted);}
+
+  .working-panel{
+    display:flex;align-items:center;gap:10px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);
+    background:var(--surface-muted);font-size:13px;color:var(--text-muted);align-self:flex-start;max-width:74%;
+  }
+  .working-dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--primary);margin:0 1.5px;animation:blink 1.1s infinite ease-in-out;}
+  .working-dots span:nth-child(2){animation-delay:.18s;}
+  .working-dots span:nth-child(3){animation-delay:.36s;}
+  @keyframes blink{0%,80%,100%{opacity:.25;}40%{opacity:1;}}
+  .working-step{font-weight:600;color:var(--text);}
+
+  .chat-input-bar{
+    border:1px solid var(--border);border-top:none;background:var(--surface);border-radius:0 0 var(--radius) var(--radius);
+    padding:12px 14px;display:flex;flex-direction:column;gap:8px;
+  }
+  .chat-input-row{display:flex;gap:10px;align-items:flex-end;}
+  .chat-input-row textarea{
+    resize:none;min-height:44px;max-height:140px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);
+    padding:11px 12px;font-size:13.8px;
+  }
+  .chat-input-foot{display:flex;align-items:center;justify-content:space-between;}
+  .chat-hint{font-size:11.5px;color:var(--text-faint);}
+  .conn-warning{
+    display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--radius-sm);
+    background:var(--warning-tint);color:var(--warning);font-size:12.5px;font-weight:600;margin-bottom:10px;
+  }
+
+  /* ───────────────────────── Agents page ───────────────────────── */
+  .agent-detail-card{display:flex;flex-direction:column;gap:12px;}
+  .agent-detail-head{display:flex;align-items:center;justify-content:space-between;}
+  .agent-detail-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#fff;flex:none;}
+  .cap-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;}
+  .cap-list li{display:flex;align-items:center;gap:8px;font-size:12.8px;color:var(--text-muted);}
+  .cap-list li::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--accent);flex:none;}
+
+  /* ───────────────────────── Upload cards ───────────────────────── */
+  .upload-card{display:flex;flex-direction:column;gap:12px;}
+  .upload-card .upload-icon{width:36px;height:36px;border-radius:9px;background:var(--primary-tint);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:700;}
+  .dropzone{
+    border:1.5px dashed var(--border-strong);border-radius:var(--radius-sm);padding:22px 14px;text-align:center;
+    cursor:pointer;background:var(--surface-muted);transition:border-color .12s,background .12s;
+  }
+  .dropzone:hover,.dropzone.drag{border-color:var(--primary);background:var(--primary-tint);}
+  .dropzone p{font-size:12.5px;color:var(--text-muted);}
+  .dropzone strong{color:var(--primary);}
+  .file-chip{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;
+    background:var(--surface-muted);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12.5px;
+  }
+  .file-chip button{background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:14px;line-height:1;}
+  .progress-track{height:5px;border-radius:99px;background:var(--border);overflow:hidden;}
+  .progress-fill{height:100%;background:var(--primary);width:0%;transition:width .15s;}
+  .upload-result{font-size:12.5px;padding:9px 11px;border-radius:var(--radius-sm);}
+  .upload-result.ok{background:var(--success-tint);color:var(--success);}
+  .upload-result.fail{background:var(--error-tint);color:var(--error);}
+
+  /* ───────────────────────── Tables ───────────────────────── */
+  table.data-table{width:100%;border-collapse:collapse;font-size:13px;}
+  table.data-table th{text-align:left;font-size:11.5px;color:var(--text-faint);font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding:8px 10px;border-bottom:1px solid var(--border);}
+  table.data-table td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+  table.data-table tr:last-child td{border-bottom:none;}
+
+  .candidate-card{border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;}
+  .candidate-card summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;font-weight:600;}
+  .candidate-card summary::-webkit-details-marker{display:none;}
+  .candidate-body{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12.5px;color:var(--text-muted);}
+  .candidate-body h5{font-size:11.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px;}
+  @media (max-width:640px){.candidate-body{grid-template-columns:1fr;}}
+
+  .best-candidate-banner{
+    display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--radius);
+    background:var(--accent-tint);border:1px solid #BFEAE3;margin-bottom:16px;
+  }
+  .best-candidate-banner .trophy{font-size:20px;}
+
+  /* ───────────────────────── Activity ───────────────────────── */
+  .activity-item{display:flex;gap:12px;padding:10px 2px;border-bottom:1px solid var(--border);font-size:13px;}
+  .activity-item:last-child{border-bottom:none;}
+  .activity-time{color:var(--text-faint);font-size:11.5px;min-width:64px;flex:none;padding-top:1px;}
+
+  /* ───────────────────────── Toasts ───────────────────────── */
+  #toast-stack{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:200;max-width:320px;}
+  .toast{
+    padding:11px 14px;border-radius:var(--radius-sm);background:var(--text);color:#fff;font-size:13px;
+    box-shadow:var(--shadow);display:flex;align-items:center;gap:8px;animation:toastin .15s ease;
+  }
+  .toast.success{background:#0F3D24;}
+  .toast.error{background:#4A0E17;}
+  @keyframes toastin{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+  /* ───────────────────────── Auth screen ───────────────────────── */
+  #auth-screen{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:20px;
+  }
+  .auth-card{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px;box-shadow:var(--shadow);}
+  .auth-brand{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
+  .auth-tabs{display:flex;gap:4px;background:var(--surface-muted);border-radius:var(--radius-sm);padding:3px;margin-bottom:20px;}
+  .auth-tab{flex:1;text-align:center;padding:8px;border-radius:6px;font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;}
+  .auth-tab.active{background:var(--surface);color:var(--primary);box-shadow:var(--shadow-sm);}
+  .auth-error{background:var(--error-tint);color:var(--error);padding:9px 12px;border-radius:var(--radius-sm);font-size:12.5px;margin-bottom:14px;}
+  .auth-note{font-size:11.5px;color:var(--text-faint);margin-top:14px;line-height:1.5;}
+
+  /* ───────────────────────── Collapsible technical detail ───────────────────────── */
+  details.tech-detail{margin-top:8px;}
+  details.tech-detail summary{cursor:pointer;font-size:11.5px;color:var(--text-faint);}
+  details.tech-detail pre{
+    margin-top:6px;padding:9px 10px;background:#F4F1F1;border-radius:6px;font-size:11px;overflow-x:auto;
+    color:#5c2020;white-space:pre-wrap;word-break:break-word;
+  }
+
+  code.inline{background:var(--surface-muted);border:1px solid var(--border);padding:1px 5px;border-radius:4px;font-size:12px;}
+
+  /* ───────────────────────── Responsive: mobile sidebar ───────────────────────── */
+  @media (max-width:900px){
+    :root{--sidebar-w:230px;}
+    #menu-toggle{display:inline-flex;}
+    nav.sidebar{
+      position:fixed;top:var(--header-h);left:0;bottom:0;transform:translateX(-100%);
+      transition:transform .18s ease;z-index:40;box-shadow:var(--shadow);
+    }
+    nav.sidebar.open{transform:translateX(0);}
+    #sidebar-backdrop.open{
+      display:block;position:fixed;inset:var(--header-h) 0 0 0;background:rgba(15,17,23,.35);z-index:30;
+    }
+    main.content{padding:18px 14px 50px;}
+    .brand-text span{display:none;}
+    .user-chip span{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════ AUTH SCREEN ══════════════════════════ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="brand-mark">F</div>
+      <div class="brand-text">
+        <strong>Founder AI</strong>
+        <span>Multi-Agent Command Center</span>
+      </div>
+    </div>
+
+    <div class="auth-tabs" role="tablist">
+      <div class="auth-tab active" id="tab-login" role="tab" tabindex="0">Sign in</div>
+      <div class="auth-tab" id="tab-register" role="tab" tabindex="0">Create account</div>
+    </div>
+
+    <div id="auth-error" class="auth-error hidden"></div>
+
+    <form id="login-form">
+      <div class="field">
+        <label for="login-email">Work email</label>
+        <input type="email" id="login-email" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" required autocomplete="current-password" />
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" id="login-submit">Sign in</button>
+    </form>
+
+    <form id="register-form" class="hidden">
+      <div class="field">
+        <label for="reg-name">Full name</label>
+        <input type="text" id="reg-name" required autocomplete="name" />
+      </div>
+      <div class="field">
+        <label for="reg-company">Company <span style="font-weight:400;color:var(--text-faint)">(optional)</span></label>
+        <input type="text" id="reg-company" autocomplete="organization" />
+      </div>
+      <div class="field">
+        <label for="reg-email">Work email</label>
+        <input type="email" id="reg-email" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="reg-password">Password</label>
+        <input type="password" id="reg-password" required autocomplete="new-password" minlength="8" />
+        <p class="field-hint">At least 8 characters, with an uppercase letter and a number.</p>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" id="register-submit">Create account</button>
+    </form>
+
+    <p class="auth-note">
+      One sign-in connects you to the Feedback, Hiring and Support agents, each running its own account system.
+      If you already have an account on only some of them, you'll still be connected to those — the dashboard
+      will show exactly which.
+    </p>
+  </div>
+</div>
+
+<!-- ══════════════════════════ APP SHELL ══════════════════════════ -->
+<div id="app-shell">
+  <header class="top-bar">
+    <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+      <button id="menu-toggle" class="btn btn-ghost btn-sm" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+      <div class="brand">
+        <div class="brand-mark">F</div>
+        <div class="brand-text">
+          <strong>Founder AI</strong>
+          <span>Multi-Agent Command Center</span>
+        </div>
+      </div>
+    </div>
+    <div class="top-bar-right">
+      <div class="status-pill" id="system-status-pill" title="Overall system status">
+        <span class="dot dot-unknown" id="system-status-dot"></span>
+        <span id="system-status-text">Checking…</span>
+      </div>
+      <div class="agent-count-pill" id="agent-count-pill" title="Connected specialist agents">— / 3 agents</div>
+      <div class="user-chip">
+        <div class="user-avatar" id="user-avatar">?</div>
+        <span id="user-email">—</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="logout-btn">Log out</button>
+    </div>
+  </header>
+
+  <div class="body-row">
+    <div id="sidebar-backdrop"></div>
+    <nav class="sidebar" id="sidebar" aria-label="Primary">
+      <div class="nav-group-label">Overview</div>
+      <div class="nav-item active" data-section="overview" tabindex="0"><span class="nav-icon">▦</span> Overview</div>
+      <div class="nav-item" data-section="supervisor" tabindex="0"><span class="nav-icon">✦</span> AI Supervisor</div>
+      <div class="nav-item" data-section="agents" tabindex="0"><span class="nav-icon">◎</span> Agents</div>
+
+      <div class="nav-group-label">Workspace</div>
+      <div class="nav-item" data-section="hiring" tabindex="0"><span class="nav-icon">👤</span> Hiring <span class="nav-dot dot dot-unknown" id="nav-dot-hiring"></span></div>
+      <div class="nav-item" data-section="feedback" tabindex="0"><span class="nav-icon">💬</span> Feedback <span class="nav-dot dot dot-unknown" id="nav-dot-feedback"></span></div>
+      <div class="nav-item" data-section="support" tabindex="0"><span class="nav-icon">🛟</span> Support <span class="nav-dot dot dot-unknown" id="nav-dot-support"></span></div>
+      <div class="nav-item" data-section="knowledge" tabindex="0"><span class="nav-icon">⬆</span> Knowledge Base</div>
+      <div class="nav-item" data-section="activity" tabindex="0"><span class="nav-icon">≡</span> Activity</div>
+
+      <div class="nav-group-label">System</div>
+      <div class="nav-item" data-section="settings" tabindex="0"><span class="nav-icon">⚙</span> Settings</div>
+    </nav>
+
+    <main class="content">
+
+      <!-- ═══════════ OVERVIEW ═══════════ -->
+      <section class="page active" id="page-overview">
+        <div class="page-header page-header-row">
+          <div>
+            <h2>Multi-Agent Command Center</h2>
+            <p>One Supervisor coordinating three specialist agents — Hiring, Feedback and Support.</p>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="refresh-overview-btn">Refresh status</button>
+        </div>
+
+        <div class="grid grid-4" id="overview-stats">
+          <div class="card stat-card">
+            <span class="stat-label">Connected agents</span>
+            <span class="stat-value" id="stat-agents">—</span>
+            <span class="stat-sub" id="stat-agents-sub">Checking…</span>
+          </div>
+          <div class="card stat-card">
+            <span class="stat-label">Supervisor</span>
+            <span class="stat-value" id="stat-supervisor">—</span>
+            <span class="stat-sub">Reasoning layer over all 3 agents</span>
+          </div>
+          <div class="card stat-card">
+            <span class="stat-label">Active conversation</span>
+            <span class="stat-value" id="stat-conversation">0</span>
+            <span class="stat-sub" id="stat-conversation-sub">No conversation started yet</span>
+          </div>
+          <div class="card stat-card">
+            <span class="stat-label">Tools used</span>
+            <span class="stat-value" id="stat-tools">0</span>
+            <span class="stat-sub">This session, via the Supervisor</span>
+          </div>
+        </div>
+
+        <div class="card subsection">
+          <div class="section-title">Agent status</div>
+          <div id="overview-agent-list"></div>
+        </div>
+
+        <div class="card subsection">
+          <div class="section-title">Agent network</div>
+          <div class="network-wrap" id="network-diagram"></div>
+        </div>
+      </section>
+
+      <!-- ═══════════ AI SUPERVISOR ═══════════ -->
+      <section class="page" id="page-supervisor">
+        <div class="page-header page-header-row">
+          <div>
+            <h2>AI Supervisor</h2>
+            <p>Ask anything — the Supervisor decides which specialist agent(s) to call and combines the results.</p>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="new-conversation-btn">New conversation</button>
+        </div>
+
+        <div id="chat-conn-warning"></div>
+
+        <div class="chat-layout">
+          <div class="chat-scroll" id="chat-scroll">
+            <div class="chat-empty" id="chat-empty-state">
+              <h4>Ask Founder AI anything</h4>
+              <p>Try: "Find the best candidate for our support role and check whether customers recently complained about slow support."</p>
+            </div>
+          </div>
+          <div class="chat-input-bar">
+            <div class="chat-input-row">
+              <textarea id="chat-input" placeholder="Ask Founder AI anything…" aria-label="Message the AI Supervisor" rows="1"></textarea>
+              <button class="btn btn-primary" id="chat-send-btn">Send</button>
+            </div>
+            <div class="chat-input-foot">
+              <span class="chat-hint">Enter to send · Shift+Enter for a new line</span>
+              <span class="chat-hint" id="thread-id-hint"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════ AGENTS ═══════════ -->
+      <section class="page" id="page-agents">
+        <div class="page-header">
+          <h2>Agents</h2>
+          <p>What each specialist agent actually does, and its live status.</p>
+        </div>
+        <div class="grid grid-3" id="agents-detail-grid"></div>
+      </section>
+
+      <!-- ═══════════ HIRING ═══════════ -->
+      <section class="page" id="page-hiring">
+        <div class="page-header page-header-row">
+          <div>
+            <h2>Hiring</h2>
+            <p>Upload resumes, then analyze them against a job description.</p>
+          </div>
+          <a class="btn btn-secondary btn-sm" href="http://localhost:3002" target="_blank" rel="noopener">Open Hiring app ↗</a>
+        </div>
+
+        <div class="card" id="hiring-upload-card"></div>
+
+        <div class="card subsection">
+          <div class="page-header-row" style="margin-bottom:12px;">
+            <div class="section-title" style="margin-bottom:0;">Uploaded resumes</div>
+            <button class="btn btn-ghost btn-sm" id="refresh-resumes-btn">Refresh</button>
+          </div>
+          <div id="resumes-list"></div>
+        </div>
+
+        <div class="card subsection">
+          <div class="section-title">Analyze candidates</div>
+          <div class="field">
+            <label for="jd-input">Job description</label>
+            <textarea id="jd-input" rows="4" placeholder="Paste the job description to score selected resumes against…"></textarea>
+          </div>
+          <button class="btn btn-primary" id="analyze-btn">Analyze selected resumes</button>
+          <div id="analyze-results" class="subsection"></div>
+        </div>
+      </section>
+
+      <!-- ═══════════ FEEDBACK ═══════════ -->
+      <section class="page" id="page-feedback">
+        <div class="page-header page-header-row">
+          <div>
+            <h2>Feedback</h2>
+            <p>Upload customer feedback so the Supervisor and Feedback Agent can reason over it.</p>
+          </div>
+          <a class="btn btn-secondary btn-sm" href="http://localhost:3001" target="_blank" rel="noopener">Open Feedback app ↗</a>
+        </div>
+        <div class="card" id="feedback-upload-card"></div>
+        <div class="card subsection">
+          <div class="empty-state">
+            <div class="empty-icon">📊</div>
+            <h4>Sentiment, topics &amp; reports live in the Feedback app</h4>
+            <p>This console focuses on getting data in and asking the Supervisor about it. For dashboards, sentiment breakdowns and generated reports, open the full Feedback Agent app.</p>
+            <a class="btn btn-secondary btn-sm" href="#" data-goto="supervisor">Ask the Supervisor instead</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════ SUPPORT ═══════════ -->
+      <section class="page" id="page-support">
+        <div class="page-header page-header-row">
+          <div>
+            <h2>Support</h2>
+            <p>Upload knowledge-base documents so the Support Agent can answer from them.</p>
+          </div>
+          <a class="btn btn-secondary btn-sm" href="http://localhost:3003" target="_blank" rel="noopener">Open Support app ↗</a>
+        </div>
+        <div class="card" id="support-upload-card"></div>
+        <div class="card subsection">
+          <div class="empty-state">
+            <div class="empty-icon">🎫</div>
+            <h4>Live chat &amp; ticket history live in the Support app</h4>
+            <p>The Supervisor here can already answer support questions using this knowledge base. For a dedicated support chat and ticket history, open the full Support Agent app.</p>
+            <a class="btn btn-secondary btn-sm" href="#" data-goto="supervisor">Ask the Supervisor instead</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════ KNOWLEDGE BASE ═══════════ -->
+      <section class="page" id="page-knowledge">
+        <div class="page-header">
+          <h2>Knowledge &amp; data</h2>
+          <p>Upload the source material each agent works from — from one place.</p>
+        </div>
+        <div class="grid grid-3">
+          <div class="card" id="kb-feedback-card"></div>
+          <div class="card" id="kb-hiring-card"></div>
+          <div class="card" id="kb-support-card"></div>
+        </div>
+      </section>
+
+      <!-- ═══════════ ACTIVITY ═══════════ -->
+      <section class="page" id="page-activity">
+        <div class="page-header page-header-row">
+          <div>
+            <h2>Activity</h2>
+            <p>A local, session-only log of what happened in this browser — not a backend audit trail.</p>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="clear-activity-btn">Clear log</button>
+        </div>
+        <div class="card" id="activity-list"></div>
+      </section>
+
+      <!-- ═══════════ SETTINGS ═══════════ -->
+      <section class="page" id="page-settings">
+        <div class="page-header">
+          <h2>Settings</h2>
+          <p>Your session, agent connections and local data.</p>
+        </div>
+
+        <div class="card">
+          <div class="section-title">Account</div>
+          <div class="agent-row"><div class="agent-row-name">Signed in as</div><div class="agent-row-meta" id="settings-email">—</div></div>
+        </div>
+
+        <div class="card subsection">
+          <div class="section-title">Agent connections</div>
+          <div id="settings-connections"></div>
+        </div>
+
+        <div class="card subsection">
+          <div class="section-title">Local session data</div>
+          <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px;">
+            Your agent tokens, current conversation thread and activity log are stored only in this browser
+            (<code class="inline">localStorage</code>), never on a third-party server.
+          </p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-secondary btn-sm" id="settings-new-conversation-btn">Start new conversation</button>
+            <button class="btn btn-danger-ghost btn-sm" id="settings-logout-btn">Log out &amp; clear local data</button>
+          </div>
+        </div>
+
+        <div class="card subsection">
+          <div class="section-title">Technical details</div>
+          <details>
+            <summary style="cursor:pointer;font-size:12.5px;color:var(--text-muted);">Orchestrator endpoints in use</summary>
+            <div style="margin-top:10px;font-size:12.5px;color:var(--text-muted);line-height:1.8;">
+              <div><code class="inline">POST /api/orchestrate</code> — Supervisor chat</div>
+              <div><code class="inline">GET /api/agents/health</code> — live agent status</div>
+              <div><code class="inline">GET /health</code> — orchestrator health</div>
+              <div><code class="inline">POST /api/auth/login</code>, <code class="inline">/register</code> — unified sign-in</div>
+              <div><code class="inline">POST /api/hiring/upload-resumes</code>, <code class="inline">/analyze</code>, <code class="inline">GET /api/hiring/resumes</code></div>
+              <div><code class="inline">POST /api/feedback/upload</code></div>
+              <div><code class="inline">POST /api/support/upload</code></div>
+            </div>
+          </details>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<div id="toast-stack" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ════════════════════════════════════════════════════════════════════
+   CONSTANTS
+   ════════════════════════════════════════════════════════════════════ */
+const STORAGE_KEYS = {
+  tokens: "fai_tokens",
+  email: "fai_email",
+  threadId: "fai_thread_id",
+  activity: "fai_activity",
+  toolsCount: "fai_tools_count",
+};
+
+const AGENT_META = {
+  feedback: {
+    label: "Feedback Agent",
+    color: "#0D9C8A",
+    purpose: "Customer feedback intelligence",
+    capabilities: [
+      "Sentiment analysis on uploaded feedback",
+      "Complaint detection",
+      "Feature-request detection",
+      "Recurring topic modeling",
+      "Trend & insight generation",
+      "Generated reports",
+      "RAG-backed chat over your feedback data",
+    ],
+  },
+  hiring: {
+    label: "Hiring Agent",
+    color: "#3934D6",
+    purpose: "Recruitment intelligence",
+    capabilities: [
+      "Multi-resume PDF ingestion & parsing",
+      "Skills / experience / education / culture-fit scoring",
+      "Candidate ranking & comparison",
+      "Job-description matching",
+      "Interview-question generation per candidate",
+    ],
+  },
+  support: {
+    label: "Support Agent",
+    color: "#B45309",
+    purpose: "Customer support intelligence",
+    capabilities: [
+      "PDF knowledge-base ingestion",
+      "Document RAG search",
+      "Agentic support chat (can also search the web)",
+      "Support-ticket escalation when needed",
+    ],
+  },
+};
+
+const TOOL_META = {
+  feedback_agent:      { agent: "Feedback Agent", label: "Analyzed customer feedback" },
+  support_agent:       { agent: "Support Agent",  label: "Searched the support knowledge base" },
+  hiring_list_resumes: { agent: "Hiring Agent",   label: "Listed uploaded resumes" },
+  hiring_analyze:      { agent: "Hiring Agent",   label: "Analyzed & ranked candidates" },
+};
+
+const WORKING_STEPS = ["Analyzing your request", "Selecting specialist agents", "Executing agent tools", "Combining results"];
+
+/* ════════════════════════════════════════════════════════════════════
+   STATE
+   ════════════════════════════════════════════════════════════════════ */
+const state = {
+  tokens: { feedback: null, hiring: null, support: null },
+  email: null,
+  threadId: null,
+  messages: [],
+  agentsHealth: null,
+  toolsUsedCount: 0,
+  resumes: [],
+  selectedResumeIds: new Set(),
+};
+
+/* ════════════════════════════════════════════════════════════════════
+   PERSISTENCE
+   ════════════════════════════════════════════════════════════════════ */
+function loadSession(){
+  try{
+    const t = localStorage.getItem(STORAGE_KEYS.tokens);
+    if (t) state.tokens = JSON.parse(t);
+    state.email = localStorage.getItem(STORAGE_KEYS.email) || null;
+    state.threadId = localStorage.getItem(STORAGE_KEYS.threadId) || null;
+    state.toolsUsedCount = parseInt(localStorage.getItem(STORAGE_KEYS.toolsCount) || "0", 10) || 0;
+  } catch(e){ /* ignore corrupt storage */ }
+}
+
+function persistTokens(){
+  localStorage.setItem(STORAGE_KEYS.tokens, JSON.stringify(state.tokens));
+  if (state.email) localStorage.setItem(STORAGE_KEYS.email, state.email);
+}
+
+function persistThreadId(){
+  if (state.threadId) localStorage.setItem(STORAGE_KEYS.threadId, state.threadId);
+  else localStorage.removeItem(STORAGE_KEYS.threadId);
+}
+
+function persistToolsCount(){
+  localStorage.setItem(STORAGE_KEYS.toolsCount, String(state.toolsUsedCount));
+}
+
+function hasAnySession(){
+  return !!(state.tokens.feedback || state.tokens.hiring || state.tokens.support);
+}
+
+function clearSession(){
+  state.tokens = { feedback: null, hiring: null, support: null };
+  state.email = null;
+  state.threadId = null;
+  state.messages = [];
+  state.toolsUsedCount = 0;
+  localStorage.removeItem(STORAGE_KEYS.tokens);
+  localStorage.removeItem(STORAGE_KEYS.email);
+  localStorage.removeItem(STORAGE_KEYS.threadId);
+  localStorage.removeItem(STORAGE_KEYS.toolsCount);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   ACTIVITY LOG (local, session-only)
+   ════════════════════════════════════════════════════════════════════ */
+function logActivity(text){
+  let list = [];
+  try{ list = JSON.parse(localStorage.getItem(STORAGE_KEYS.activity) || "[]"); } catch(e){ list = []; }
+  list.push({ t: Date.now(), text });
+  if (list.length > 200) list = list.slice(list.length - 200);
+  localStorage.setItem(STORAGE_KEYS.activity, JSON.stringify(list));
+  if (document.getElementById("page-activity").classList.contains("active")) renderActivity();
+}
+
+function getActivity(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE_KEYS.activity) || "[]"); } catch(e){ return []; }
+}
+
+function renderActivity(){
+  const el = document.getElementById("activity-list");
+  const items = getActivity().slice().reverse();
+  if (!items.length){
+    el.innerHTML = emptyStateHTML("≡", "No activity yet", "Actions you take in this browser — logins, uploads, Supervisor requests — will show up here.");
+    return;
+  }
+  el.innerHTML = items.map(function(it){
+    const d = new Date(it.t);
+    const time = d.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+    return '<div class="activity-item"><div class="activity-time">'+time+'</div><div>'+escapeHtml(it.text)+'</div></div>';
+  }).join("");
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   TOASTS / NOTIFICATIONS
+   ════════════════════════════════════════════════════════════════════ */
+function toast(message, kind){
+  kind = kind || "info";
+  const stack = document.getElementById("toast-stack");
+  const el = document.createElement("div");
+  el.className = "toast " + kind;
+  el.textContent = message;
+  stack.appendChild(el);
+  setTimeout(function(){
+    el.style.transition = "opacity .2s";
+    el.style.opacity = "0";
+    setTimeout(function(){ el.remove(); }, 220);
+  }, 3200);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   API LAYER
+   ════════════════════════════════════════════════════════════════════ */
+const API = {
+  async postJSON(path, body){
+    let res;
+    try{
+      res = await fetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body || {}),
+      });
+    } catch(networkErr){
+      throw { network: true, message: networkErr.message };
+    }
+    return API._handle(res);
+  },
+
+  async postJSONAuthed(path, body, tokenHeaders){
+    let res;
+    try{
+      res = await fetch(path, {
+        method: "POST",
+        headers: Object.assign({ "Content-Type": "application/json" }, tokenHeaders || {}),
+        body: JSON.stringify(body || {}),
+      });
+    } catch(networkErr){
+      throw { network: true, message: networkErr.message };
+    }
+    return API._handle(res);
+  },
+
+  async get(path, tokenHeaders){
+    let res;
+    try{
+      res = await fetch(path, { headers: tokenHeaders || {} });
+    } catch(networkErr){
+      throw { network: true, message: networkErr.message };
+    }
+    return API._handle(res);
+  },
+
+  async _handle(res){
+    let bodyText = "";
+    try{ bodyText = await res.text(); } catch(e){ /* noop */ }
+    let json = null;
+    try{ json = bodyText ? JSON.parse(bodyText) : null; } catch(e){ /* not json */ }
+    if (!res.ok){
+      throw { status: res.status, detail: (json && json.detail) || bodyText || res.statusText };
+    }
+    return json;
+  },
+
+  // XHR wrapper so uploads can report real progress.
+  uploadWithProgress(path, formData, headers, onProgress){
+    return new Promise(function(resolve, reject){
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", path);
+      Object.keys(headers || {}).forEach(function(k){ xhr.setRequestHeader(k, headers[k]); });
+      xhr.upload.onprogress = function(e){
+        if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
+      };
+      xhr.onload = function(){
+        let json = null;
+        try{ json = JSON.parse(xhr.responseText); } catch(e){ /* noop */ }
+        if (xhr.status >= 200 && xhr.status < 300) resolve(json);
+        else reject({ status: xhr.status, detail: (json && json.detail) || xhr.responseText || xhr.statusText });
+      };
+      xhr.onerror = function(){ reject({ network: true, message: "Network error during upload" }); };
+      xhr.send(formData);
+    });
+  },
+};
+
+function tokenHeaders(){
+  const h = {};
+  if (state.tokens.feedback) h["X-Feedback-Token"] = state.tokens.feedback;
+  if (state.tokens.hiring) h["X-Hiring-Token"] = state.tokens.hiring;
+  if (state.tokens.support) h["X-Support-Token"] = state.tokens.support;
+  return h;
+}
+
+function friendlyError(err){
+  if (err && err.network){
+    return {
+      title: "Supervisor could not complete the request.",
+      bullets: ["Agent status", "Authentication", "LLM configuration", "Backend logs"],
+      tech: err.message,
+    };
+  }
+  if (err && err.status === 401){
+    return { title: "Your session has expired.", bullets: ["Please sign in again."], tech: err.detail, isAuth: true };
+  }
+  if (err && err.status === 502){
+    return { title: "The supervisor could not reach one or more agents.", bullets: [], tech: err.detail };
+  }
+  if (err && err.status >= 500){
+    return {
+      title: "Supervisor could not complete the request.",
+      bullets: ["Agent status", "Authentication", "LLM configuration", "Backend logs"],
+      tech: err.detail,
+    };
+  }
+  return { title: "Something went wrong.", bullets: [], tech: err && (err.detail || err.message) };
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   AUTHENTICATION
+   ════════════════════════════════════════════════════════════════════ */
+function initAuthScreen(){
+  const tabLogin = document.getElementById("tab-login");
+  const tabRegister = document.getElementById("tab-register");
+  const loginForm = document.getElementById("login-form");
+  const registerForm = document.getElementById("register-form");
+
+  function showLogin(){
+    tabLogin.classList.add("active"); tabRegister.classList.remove("active");
+    loginForm.classList.remove("hidden"); registerForm.classList.add("hidden");
+    hideAuthError();
+  }
+  function showRegister(){
+    tabRegister.classList.add("active"); tabLogin.classList.remove("active");
+    registerForm.classList.remove("hidden"); loginForm.classList.add("hidden");
+    hideAuthError();
+  }
+  tabLogin.addEventListener("click", showLogin);
+  tabRegister.addEventListener("click", showRegister);
+  tabLogin.addEventListener("keydown", function(e){ if (e.key === "Enter") showLogin(); });
+  tabRegister.addEventListener("keydown", function(e){ if (e.key === "Enter") showRegister(); });
+
+  loginForm.addEventListener("submit", async function(e){
+    e.preventDefault();
+    hideAuthError();
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
+    const btn = document.getElementById("login-submit");
+    setBusy(btn, true, "Signing in…");
+    try{
+      const result = await API.postJSON("/api/auth/login", { email: email, password: password });
+      applyAuthResult(email, result);
+    } catch(err){
+      showAuthError(authErrorMessage(err));
+    } finally {
+      setBusy(btn, false, "Sign in");
+    }
+  });
+
+  registerForm.addEventListener("submit", async function(e){
+    e.preventDefault();
+    hideAuthError();
+    const name = document.getElementById("reg-name").value.trim();
+    const company = document.getElementById("reg-company").value.trim();
+    const email = document.getElementById("reg-email").value.trim();
+    const password = document.getElementById("reg-password").value;
+    const btn = document.getElementById("register-submit");
+    setBusy(btn, true, "Creating account…");
+    try{
+      const result = await API.postJSON("/api/auth/register", {
+        name: name, email: email, password: password, company_name: company || null,
+      });
+      applyAuthResult(email, result);
+    } catch(err){
+      showAuthError(authErrorMessage(err));
+    } finally {
+      setBusy(btn, false, "Create account");
+    }
+  });
+}
+
+function authErrorMessage(err){
+  if (err && err.network) return "Could not reach the orchestrator. Is it running?";
+  if (err && err.detail) return typeof err.detail === "string" ? err.detail : "Sign-in failed.";
+  return "Sign-in failed. Please try again.";
+}
+
+function showAuthError(msg){
+  const el = document.getElementById("auth-error");
+  el.textContent = msg;
+  el.classList.remove("hidden");
+}
+function hideAuthError(){
+  document.getElementById("auth-error").classList.add("hidden");
+}
+
+function setBusy(btn, busy, label){
+  btn.disabled = busy;
+  btn.textContent = label;
+}
+
+function applyAuthResult(email, result){
+  state.email = email;
+  state.tokens = {
+    feedback: result.tokens.feedback,
+    hiring: result.tokens.hiring,
+    support: result.tokens.support,
+  };
+  persistTokens();
+  logActivity("Signed in as " + email + " (" + result.connected_count + "/" + result.total_count + " agents connected)");
+  toast("Connected to " + result.connected_count + " / " + result.total_count + " agents", "success");
+  enterApp();
+}
+
+function logout(){
+  logActivity("Logged out");
+  clearSession();
+  document.getElementById("app-shell").classList.remove("active");
+  document.getElementById("auth-screen").style.display = "flex";
+  document.getElementById("login-form").reset();
+  document.getElementById("register-form").reset();
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   APP SHELL / NAVIGATION
+   ════════════════════════════════════════════════════════════════════ */
+function enterApp(){
+  document.getElementById("auth-screen").style.display = "none";
+  document.getElementById("app-shell").classList.add("active");
+
+  document.getElementById("user-email").textContent = state.email || "—";
+  document.getElementById("user-avatar").textContent = (state.email || "?").charAt(0).toUpperCase();
+  document.getElementById("settings-email").textContent = state.email || "—";
+
+  renderStaticSections();
+  refreshHealth();
+  renderChatFromState();
+  renderActivity();
+  renderSettingsConnections();
+  updateOverviewStats();
+  updateThreadHint();
+
+  clearInterval(window.__faiHealthPoll);
+  window.__faiHealthPoll = setInterval(refreshHealth, 25000);
+}
+
+function initNavigation(){
+  document.querySelectorAll(".nav-item").forEach(function(item){
+    function activate(){ goToSection(item.getAttribute("data-section")); }
+    item.addEventListener("click", activate);
+    item.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " "){ e.preventDefault(); activate(); } });
+  });
+  document.querySelectorAll("[data-goto]").forEach(function(a){
+    a.addEventListener("click", function(e){ e.preventDefault(); goToSection(a.getAttribute("data-goto")); });
+  });
+
+  const menuToggle = document.getElementById("menu-toggle");
+  const sidebar = document.getElementById("sidebar");
+  const backdrop = document.getElementById("sidebar-backdrop");
+  function closeMobileNav(){
+    sidebar.classList.remove("open"); backdrop.classList.remove("open");
+    menuToggle.setAttribute("aria-expanded", "false");
+  }
+  menuToggle.addEventListener("click", function(){
+    const open = sidebar.classList.toggle("open");
+    backdrop.classList.toggle("open", open);
+    menuToggle.setAttribute("aria-expanded", String(open));
+  });
+  backdrop.addEventListener("click", closeMobileNav);
+  document.querySelectorAll(".nav-item").forEach(function(i){ i.addEventListener("click", closeMobileNav); });
+}
+
+function goToSection(name){
+  document.querySelectorAll(".nav-item").forEach(function(i){ i.classList.toggle("active", i.getAttribute("data-section") === name); });
+  document.querySelectorAll(".page").forEach(function(p){ p.classList.toggle("active", p.id === "page-" + name); });
+  if (name === "activity") renderActivity();
+  if (name === "hiring") loadResumes();
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   HEALTH / STATUS
+   ════════════════════════════════════════════════════════════════════ */
+async function refreshHealth(){
+  try{
+    const data = await API.get("/api/agents/health");
+    state.agentsHealth = data;
+    renderHealthEverywhere(data);
+  } catch(err){
+    renderHealthEverywhere(null);
+  }
+}
+
+function renderHealthEverywhere(data){
+  const pillDot = document.getElementById("system-status-dot");
+  const pillText = document.getElementById("system-status-text");
+  const countPill = document.getElementById("agent-count-pill");
+
+  if (!data){
+    pillDot.className = "dot dot-unknown";
+    pillText.textContent = "Unknown";
+    countPill.textContent = "— / 3 agents";
+  } else {
+    const online = data.online_count, total = data.total_count;
+    let cls = "dot-error", label = "Offline";
+    if (online === total){ cls = "dot-online"; label = "All systems operational"; }
+    else if (online > 0){ cls = "dot-degraded"; label = "Degraded"; }
+    pillDot.className = "dot " + cls;
+    pillText.textContent = label;
+    countPill.textContent = online + " / " + total + " agents online";
+
+    ["feedback","hiring","support"].forEach(function(a){
+      const navDot = document.getElementById("nav-dot-" + a);
+      if (navDot) navDot.className = "nav-dot dot " + statusDotClass(data.agents[a] && data.agents[a].status);
+    });
+  }
+
+  updateOverviewStats();
+  renderOverviewAgentList();
+  renderAgentsDetailGrid();
+  renderNetworkDiagram();
+}
+
+function statusDotClass(status){
+  if (status === "online") return "dot-online";
+  if (status === "degraded") return "dot-degraded";
+  if (status === "offline") return "dot-offline";
+  return "dot-unknown";
+}
+function statusLabel(status){
+  if (status === "online") return "Online";
+  if (status === "degraded") return "Degraded";
+  if (status === "offline") return "Offline";
+  return "Unknown";
+}
+
+function updateOverviewStats(){
+  const h = state.agentsHealth;
+  document.getElementById("stat-agents").textContent = h ? (h.online_count + " / " + h.total_count) : "—";
+  document.getElementById("stat-agents-sub").textContent = h ? "Live from /api/agents/health" : "Checking…";
+  document.getElementById("stat-supervisor").textContent = h ? "Ready" : "Unknown";
+  document.getElementById("stat-conversation").textContent = state.threadId ? "1" : "0";
+  document.getElementById("stat-conversation-sub").textContent = state.threadId ? "Thread active" : "No conversation started yet";
+  document.getElementById("stat-tools").textContent = String(state.toolsUsedCount);
+}
+
+function renderOverviewAgentList(){
+  const el = document.getElementById("overview-agent-list");
+  const h = state.agentsHealth;
+  const rows = ["feedback","hiring","support"].map(function(a){
+    const info = h && h.agents[a];
+    const status = info ? info.status : "unknown";
+    const latency = info && info.latency_ms != null ? info.latency_ms + " ms" : "";
+    return '<div class="agent-row"><div class="agent-row-name"><span class="dot '+statusDotClass(status)+'"></span>'+AGENT_META[a].label+'</div>'+
+      '<div class="agent-row-meta"><span>'+statusLabel(status)+'</span>'+(latency ? '<span>'+latency+'</span>' : '')+'</div></div>';
+  }).join("");
+  const orchRow = '<div class="agent-row"><div class="agent-row-name"><span class="dot '+(h ? "dot-online" : "dot-unknown")+'"></span>Orchestrator</div>'+
+    '<div class="agent-row-meta"><span>'+(h ? "Healthy" : "Unknown")+'</span></div></div>';
+  el.innerHTML = rows + orchRow;
+}
+
+function renderNetworkDiagram(){
+  const h = state.agentsHealth;
+  const wrap = document.getElementById("network-diagram");
+  function nodeColor(a){
+    const s = h && h.agents[a] && h.agents[a].status;
+    if (s === "online") return "#15803D";
+    if (s === "degraded") return "#B45309";
+    if (s === "offline") return "#C0152F";
+    return "#9AA1AE";
+  }
+  wrap.innerHTML =
+    '<svg class="network-svg" viewBox="0 0 620 220" role="img" aria-label="Agent network diagram">' +
+      '<line x1="310" y1="70" x2="120" y2="150" stroke="#D3D7E0" stroke-width="1.5"/>' +
+      '<line x1="310" y1="70" x2="310" y2="150" stroke="#D3D7E0" stroke-width="1.5"/>' +
+      '<line x1="310" y1="70" x2="500" y2="150" stroke="#D3D7E0" stroke-width="1.5"/>' +
+      '<rect x="230" y="24" width="160" height="46" rx="10" fill="#EEEEFC" stroke="#3934D6"/>' +
+      '<text x="310" y="52" text-anchor="middle" class="network-node-label" fill="#3934D6">AI Supervisor</text>' +
+      nodeBlock(120, 150, "Feedback", nodeColor("feedback"), h && h.agents.feedback) +
+      nodeBlock(310, 150, "Hiring", nodeColor("hiring"), h && h.agents.hiring) +
+      nodeBlock(500, 150, "Support", nodeColor("support"), h && h.agents.support) +
+    '</svg>';
+}
+function nodeBlock(cx, cy, label, color, info){
+  const status = info ? statusLabel(info.status) : "Unknown";
+  return '<rect x="'+(cx-58)+'" y="'+(cy-24)+'" width="116" height="48" rx="10" fill="#FFFFFF" stroke="#E3E6EC"/>' +
+    '<circle cx="'+(cx-42)+'" cy="'+cy+'" r="5" fill="'+color+'"/>' +
+    '<text x="'+(cx+2)+'" y="'+(cy-2)+'" text-anchor="middle" class="network-node-label">'+label+'</text>' +
+    '<text x="'+(cx+2)+'" y="'+(cy+13)+'" text-anchor="middle" class="network-node-sub">'+status+'</text>';
+}
+
+function renderAgentsDetailGrid(){
+  const el = document.getElementById("agents-detail-grid");
+  const h = state.agentsHealth;
+  el.innerHTML = ["feedback","hiring","support"].map(function(a){
+    const meta = AGENT_META[a];
+    const info = h && h.agents[a];
+    const status = info ? info.status : "unknown";
+    return '<div class="card agent-detail-card">' +
+      '<div class="agent-detail-head">' +
+        '<div style="display:flex;align-items:center;gap:10px;">' +
+          '<div class="agent-detail-icon" style="background:'+meta.color+'">'+meta.label.charAt(0)+'</div>' +
+          '<div><h3 style="font-size:14.5px;">'+meta.label+'</h3><p style="color:var(--text-faint);font-size:12px;">'+meta.purpose+'</p></div>' +
+        '</div>' +
+        '<span class="badge '+(status==="online"?"badge-success":status==="degraded"?"badge-warning":status==="offline"?"badge-error":"badge-neutral")+'">'+statusLabel(status)+'</span>' +
+      '</div>' +
+      '<ul class="cap-list">'+meta.capabilities.map(function(c){ return "<li>"+c+"</li>"; }).join("")+'</ul>' +
+    '</div>';
+  }).join("");
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   SUPERVISOR CHAT
+   ════════════════════════════════════════════════════════════════════ */
+function updateThreadHint(){
+  document.getElementById("thread-id-hint").textContent = state.threadId ? "Thread active" : "New thread on first message";
+}
+
+function renderConnWarning(){
+  const el = document.getElementById("chat-conn-warning");
+  const missing = ["feedback","hiring","support"].filter(function(a){ return !state.tokens[a]; });
+  if (!missing.length){ el.innerHTML = ""; return; }
+  const names = missing.map(function(a){ return AGENT_META[a].label; }).join(", ");
+  el.innerHTML = '<div class="conn-warning">⚠ Not connected to: '+names+'. The Supervisor can still answer, but tools for '+ (missing.length>1?"those agents":"that agent") +' will report as unavailable.</div>';
+}
+
+function renderChatFromState(){
+  renderConnWarning();
+  const scroll = document.getElementById("chat-scroll");
+  const empty = document.getElementById("chat-empty-state");
+  if (!state.messages.length){
+    scroll.innerHTML = "";
+    scroll.appendChild(empty);
+    return;
+  }
+  scroll.innerHTML = "";
+  state.messages.forEach(function(m){ scroll.appendChild(renderMessageEl(m)); });
+  scroll.scrollTop = scroll.scrollHeight;
+}
+
+function timeStr(ts){
+  return new Date(ts).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+}
+
+function renderMessageEl(m){
+  const wrap = document.createElement("div");
+  wrap.className = "msg " + m.role;
+
+  const bubble = document.createElement("div");
+  bubble.className = "msg-bubble" + (m.error ? " error" : "");
+  bubble.textContent = m.content;
+  wrap.appendChild(bubble);
+
+  const meta = document.createElement("div");
+  meta.className = "msg-meta";
+  meta.innerHTML = "<span>" + timeStr(m.timestamp) + "</span>";
+  if (m.error){
+    const retry = document.createElement("button");
+    retry.className = "msg-retry";
+    retry.textContent = "Retry";
+    retry.addEventListener("click", function(){ retrySend(m); });
+    meta.appendChild(document.createTextNode(" · "));
+    meta.appendChild(retry);
+  }
+  wrap.appendChild(meta);
+
+  if (m.role === "assistant" && !m.error){
+    wrap.appendChild(renderExecPanel(m.toolsUsed || []));
+  }
+  return wrap;
+}
+
+function renderExecPanel(tools){
+  const panel = document.createElement("div");
+  panel.className = "exec-panel";
+  if (!tools.length){
+    panel.innerHTML = '<div class="exec-panel-head">Supervisor execution</div><div class="exec-item"><span class="exec-check">✓</span><span>Supervisor answered directly — no specialist agent was needed</span></div>';
+    return panel;
+  }
+  const seen = [];
+  tools.forEach(function(t){ if (seen.indexOf(t) === -1) seen.push(t); });
+  const items = seen.map(function(t){
+    const meta = TOOL_META[t] || { agent: t, label: "" };
+    return '<div class="exec-item"><span class="exec-check">✓</span><div><div class="exec-agent">'+meta.agent+'</div><div class="exec-tool">'+meta.label+'</div></div></div>';
+  }).join("");
+  panel.innerHTML = '<div class="exec-panel-head">Supervisor execution</div>' + items +
+    '<div class="exec-item"><span class="exec-check">✓</span><div class="exec-agent">Supervisor</div></div>';
+  return panel;
+}
+
+let workingEl = null;
+function showWorking(){
+  const scroll = document.getElementById("chat-scroll");
+  document.getElementById("chat-empty-state").remove();
+  workingEl = document.createElement("div");
+  workingEl.className = "working-panel";
+  workingEl.innerHTML = '<span class="working-dots"><span></span><span></span><span></span></span><span class="working-step" id="working-step-text">'+WORKING_STEPS[0]+'</span>';
+  scroll.appendChild(workingEl);
+  scroll.scrollTop = scroll.scrollHeight;
+  let i = 0;
+  workingEl.__interval = setInterval(function(){
+    i = (i + 1) % WORKING_STEPS.length;
+    const t = document.getElementById("working-step-text");
+    if (t) t.textContent = WORKING_STEPS[i];
+  }, 950);
+}
+function hideWorking(){
+  if (workingEl){
+    clearInterval(workingEl.__interval);
+    workingEl.remove();
+    workingEl = null;
+  }
+}
+
+async function sendMessage(text){
+  const scroll = document.getElementById("chat-scroll");
+  if (document.getElementById("chat-empty-state").isConnected) document.getElementById("chat-empty-state").remove();
+
+  const userMsg = { role: "user", content: text, timestamp: Date.now() };
+  state.messages.push(userMsg);
+  scroll.appendChild(renderMessageEl(userMsg));
+  scroll.scrollTop = scroll.scrollHeight;
+
+  const sendBtn = document.getElementById("chat-send-btn");
+  sendBtn.disabled = true;
+  showWorking();
+  logActivity("Supervisor request: " + truncate(text, 80));
+
+  try{
+    const result = await API.postJSONAuthed("/api/orchestrate", { message: text, thread_id: state.threadId }, tokenHeaders());
+    hideWorking();
+    state.threadId = result.thread_id;
+    persistThreadId();
+    updateThreadHint();
+
+    (result.tools_used || []).forEach(function(t){
+      const meta = TOOL_META[t];
+      if (meta) logActivity(meta.agent + " called — " + meta.label);
+    });
+    if ((result.tools_used || []).length){
+      state.toolsUsedCount += result.tools_used.length;
+      persistToolsCount();
+    }
+    logActivity("Final answer generated");
+
+    const assistantMsg = { role: "assistant", content: result.answer, timestamp: Date.now(), toolsUsed: result.tools_used || [] };
+    state.messages.push(assistantMsg);
+    scroll.appendChild(renderMessageEl(assistantMsg));
+    scroll.scrollTop = scroll.scrollHeight;
+    updateOverviewStats();
+  } catch(err){
+    hideWorking();
+    const fe = friendlyError(err);
+    const failMsg = {
+      role: "assistant",
+      content: fe.title + (fe.bullets.length ? "\n\nPlease check:\n" + fe.bullets.map(function(b){ return "• " + b; }).join("\n") : ""),
+      timestamp: Date.now(),
+      error: true,
+      retryText: text,
+      tech: fe.tech,
+    };
+    state.messages.push(failMsg);
+    const el = renderMessageEl(failMsg);
+    if (fe.tech){
+      const det = document.createElement("details");
+      det.className = "tech-detail";
+      det.innerHTML = "<summary>Technical details</summary><pre>" + escapeHtml(String(fe.tech)) + "</pre>";
+      el.querySelector(".msg-bubble").after(det);
+    }
+    scroll.appendChild(el);
+    scroll.scrollTop = scroll.scrollHeight;
+    logActivity("Supervisor request failed");
+    toast("Supervisor request failed", "error");
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
+function retrySend(failedMsg){
+  const idx = state.messages.indexOf(failedMsg);
+  if (idx > -1) state.messages.splice(idx, 1);
+  renderChatFromState();
+  sendMessage(failedMsg.retryText);
+}
+
+function initChat(){
+  const input = document.getElementById("chat-input");
+  const sendBtn = document.getElementById("chat-send-btn");
+
+  function doSend(){
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = "";
+    input.style.height = "44px";
+    sendMessage(text);
+  }
+
+  sendBtn.addEventListener("click", doSend);
+  input.addEventListener("keydown", function(e){
+    if (e.key === "Enter" && !e.shiftKey){
+      e.preventDefault();
+      doSend();
+    }
+  });
+  input.addEventListener("input", function(){
+    input.style.height = "44px";
+    input.style.height = Math.min(input.scrollHeight, 140) + "px";
+  });
+
+  function newConversation(){
+    state.threadId = null;
+    state.messages = [];
+    persistThreadId();
+    updateThreadHint();
+    renderChatFromState();
+    updateOverviewStats();
+    logActivity("Started a new conversation");
+    toast("New conversation started");
+  }
+  document.getElementById("new-conversation-btn").addEventListener("click", newConversation);
+  document.getElementById("settings-new-conversation-btn").addEventListener("click", newConversation);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   UPLOAD WIDGETS (shared across Knowledge Base / Hiring / Feedback / Support)
+   ════════════════════════════════════════════════════════════════════ */
+const UPLOAD_SPECS = {
+  feedback: { title: "Feedback", subtitle: "CSV, XLSX, XLS or JSON", accept: ".csv,.xlsx,.xls,.json", multiple: false, endpoint: "/api/feedback/upload", tokenHeader: "X-Feedback-Token", fieldName: "file" },
+  hiring:   { title: "Hiring resumes", subtitle: "PDF, multiple files", accept: ".pdf", multiple: true, endpoint: "/api/hiring/upload-resumes", tokenHeader: "X-Hiring-Token", fieldName: "files" },
+  support:  { title: "Support knowledge base", subtitle: "PDF", accept: ".pdf", multiple: false, endpoint: "/api/support/upload", tokenHeader: "X-Support-Token", fieldName: "file" },
+};
+
+function buildUploadCard(agent, containerEl){
+  const spec = UPLOAD_SPECS[agent];
+  const connected = !!state.tokens[agent];
+  const inputId = "upload-input-" + agent + "-" + Math.random().toString(36).slice(2,7);
+
+  containerEl.innerHTML =
+    '<div class="upload-icon">'+spec.title.charAt(0)+'</div>' +
+    '<div><strong style="font-size:14px;">'+spec.title+'</strong><p style="color:var(--text-faint);font-size:12px;margin-top:2px;">'+spec.subtitle+'</p></div>' +
+    (connected ? '' : '<div class="conn-warning">⚠ Not connected to '+AGENT_META[agent].label+'. Sign in with an account on that agent to upload.</div>') +
+    '<div class="dropzone" tabindex="0" role="button" aria-label="Upload '+spec.title+' file">' +
+      '<p><strong>Click to choose</strong> or drag a file here</p>' +
+    '</div>' +
+    '<input type="file" id="'+inputId+'" class="visually-hidden" accept="'+spec.accept+'" '+(spec.multiple?'multiple':'')+' '+(connected?'':'disabled')+' />' +
+    '<div class="upload-files"></div>' +
+    '<div class="upload-progress hidden"><div class="progress-track"><div class="progress-fill"></div></div></div>' +
+    '<button class="btn btn-primary btn-block upload-btn" disabled>Upload</button>' +
+    '<div class="upload-result-slot"></div>';
+
+  const dropzone = containerEl.querySelector(".dropzone");
+  const input = containerEl.querySelector("input[type=file]");
+  const filesBox = containerEl.querySelector(".upload-files");
+  const uploadBtn = containerEl.querySelector(".upload-btn");
+  const progressBox = containerEl.querySelector(".upload-progress");
+  const progressFill = containerEl.querySelector(".progress-fill");
+  const resultSlot = containerEl.querySelector(".upload-result-slot");
+
+  let selectedFiles = [];
+
+  function renderFiles(){
+    filesBox.innerHTML = selectedFiles.map(function(f, i){
+      return '<div class="file-chip"><span>'+escapeHtml(f.name)+' <span style="color:var(--text-faint)">('+formatBytes(f.size)+')</span></span><button data-i="'+i+'" aria-label="Remove file">✕</button></div>';
+    }).join("");
+    filesBox.querySelectorAll("button[data-i]").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        selectedFiles.splice(parseInt(btn.getAttribute("data-i"), 10), 1);
+        renderFiles();
+        uploadBtn.disabled = !selectedFiles.length;
+      });
+    });
+    uploadBtn.disabled = !selectedFiles.length;
+  }
+
+  function addFiles(fileList){
+    Array.from(fileList).forEach(function(f){ selectedFiles.push(f); });
+    if (!spec.multiple) selectedFiles = selectedFiles.slice(-1);
+    renderFiles();
+  }
+
+  if (connected){
+    dropzone.addEventListener("click", function(){ input.click(); });
+    dropzone.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " ") input.click(); });
+    dropzone.addEventListener("dragover", function(e){ e.preventDefault(); dropzone.classList.add("drag"); });
+    dropzone.addEventListener("dragleave", function(){ dropzone.classList.remove("drag"); });
+    dropzone.addEventListener("drop", function(e){
+      e.preventDefault(); dropzone.classList.remove("drag");
+      addFiles(e.dataTransfer.files);
+    });
+    input.addEventListener("change", function(){ addFiles(input.files); input.value = ""; });
+  } else {
+    dropzone.style.opacity = ".55"; dropzone.style.cursor = "not-allowed";
+  }
+
+  uploadBtn.addEventListener("click", async function(){
+    if (!selectedFiles.length) return;
+    uploadBtn.disabled = true;
+    progressBox.classList.remove("hidden");
+    progressFill.style.width = "2%";
+    resultSlot.innerHTML = "";
+
+    const formData = new FormData();
+    if (spec.multiple){
+      selectedFiles.forEach(function(f){ formData.append("files", f); });
+    } else {
+      formData.append("file", selectedFiles[0]);
+      if (agent === "feedback") formData.append("auto_analyze", "true");
+    }
+    const headers = {};
+    headers[spec.tokenHeader] = state.tokens[agent];
+
+    try{
+      const result = await API.uploadWithProgress(spec.endpoint, formData, headers, function(pct){ progressFill.style.width = pct + "%"; });
+      progressFill.style.width = "100%";
+      const names = selectedFiles.map(function(f){ return f.name; }).join(", ");
+      resultSlot.innerHTML = '<div class="upload-result ok">✓ Uploaded: '+escapeHtml(names)+'</div>';
+      toast((result && result.message) || "Upload successful", "success");
+      logActivity(AGENT_META[agent].label + ": uploaded " + names);
+      selectedFiles = [];
+      renderFiles();
+      if (agent === "hiring") loadResumes();
+    } catch(err){
+      const fe = friendlyError(err);
+      resultSlot.innerHTML = '<div class="upload-result fail">✕ Upload failed — '+escapeHtml(fe.title)+'</div>';
+      toast("Upload failed", "error");
+      logActivity(AGENT_META[agent].label + ": upload failed");
+    } finally {
+      setTimeout(function(){ progressBox.classList.add("hidden"); progressFill.style.width = "0%"; }, 600);
+    }
+  });
+}
+
+function renderStaticSections(){
+  buildUploadCard("hiring", document.getElementById("hiring-upload-card"));
+  buildUploadCard("feedback", document.getElementById("feedback-upload-card"));
+  buildUploadCard("support", document.getElementById("support-upload-card"));
+  buildUploadCard("feedback", document.getElementById("kb-feedback-card"));
+  buildUploadCard("hiring", document.getElementById("kb-hiring-card"));
+  buildUploadCard("support", document.getElementById("kb-support-card"));
+  renderAgentsDetailGrid();
+  renderNetworkDiagram();
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   HIRING WORKSPACE — resumes list + analyze
+   ════════════════════════════════════════════════════════════════════ */
+async function loadResumes(){
+  const el = document.getElementById("resumes-list");
+  if (!state.tokens.hiring){
+    el.innerHTML = emptyStateHTML("👤", "Not connected to the Hiring Agent", "Sign in with an account that exists on the Hiring Agent to see uploaded resumes.");
+    return;
+  }
+  el.innerHTML = '<p style="color:var(--text-faint);font-size:13px;">Loading…</p>';
+  try{
+    const resumes = await API.get("/api/hiring/resumes", { "X-Hiring-Token": state.tokens.hiring });
+    state.resumes = resumes || [];
+    renderResumesList();
+  } catch(err){
+    el.innerHTML = emptyStateHTML("⚠", "Could not load resumes", friendlyError(err).title);
+  }
+}
+
+function renderResumesList(){
+  const el = document.getElementById("resumes-list");
+  if (!state.resumes.length){
+    el.innerHTML = emptyStateHTML("👤", "No resumes uploaded yet", "Upload your first resume above to start candidate analysis.");
+    return;
+  }
+  el.innerHTML =
+    '<table class="data-table"><thead><tr><th style="width:30px;"></th><th>Filename</th><th>Size</th><th>Uploaded</th></tr></thead><tbody>' +
+    state.resumes.map(function(r){
+      const checked = state.selectedResumeIds.has(r.id) ? "checked" : "";
+      return '<tr><td><input type="checkbox" data-id="'+r.id+'" '+checked+' aria-label="Select '+escapeHtml(r.original_filename)+'"/></td>' +
+        '<td>'+escapeHtml(r.original_filename)+'</td><td>'+formatBytes(r.file_size)+'</td>' +
+        '<td>'+new Date(r.uploaded_at).toLocaleDateString()+'</td></tr>';
+    }).join("") + '</tbody></table>';
+  el.querySelectorAll('input[type=checkbox]').forEach(function(cb){
+    cb.addEventListener("change", function(){
+      const id = parseInt(cb.getAttribute("data-id"), 10);
+      if (cb.checked) state.selectedResumeIds.add(id); else state.selectedResumeIds.delete(id);
+    });
+  });
+}
+
+function initHiringAnalyze(){
+  document.getElementById("refresh-resumes-btn").addEventListener("click", loadResumes);
+  document.getElementById("analyze-btn").addEventListener("click", async function(){
+    const jd = document.getElementById("jd-input").value.trim();
+    const ids = Array.from(state.selectedResumeIds);
+    const resultsEl = document.getElementById("analyze-results");
+    if (!ids.length){ toast("Select at least one resume first", "error"); return; }
+    if (!jd){ toast("Add a job description first", "error"); return; }
+    if (!state.tokens.hiring){ toast("Not connected to the Hiring Agent", "error"); return; }
+
+    const btn = document.getElementById("analyze-btn");
+    btn.disabled = true; btn.textContent = "Analyzing…";
+    resultsEl.innerHTML = '<p style="color:var(--text-faint);font-size:13px;">Scoring candidates…</p>';
+    try{
+      const result = await API.postJSONAuthed("/api/hiring/analyze", { resume_ids: ids, job_description: jd }, { "X-Hiring-Token": state.tokens.hiring });
+      renderAnalyzeResults(result);
+      logActivity("Hiring Agent: analyzed " + ids.length + " resume(s)");
+    } catch(err){
+      const fe = friendlyError(err);
+      resultsEl.innerHTML = '<div class="upload-result fail">✕ '+escapeHtml(fe.title)+'</div>';
+    } finally {
+      btn.disabled = false; btn.textContent = "Analyze selected resumes";
+    }
+  });
+}
+
+function renderAnalyzeResults(result){
+  const el = document.getElementById("analyze-results");
+  let html = "";
+  if (result.best_candidate_name){
+    html += '<div class="best-candidate-banner"><span class="trophy">🏆</span><div><strong>Best candidate: '+escapeHtml(result.best_candidate_name)+'</strong><p style="font-size:12.5px;color:var(--text-muted);margin-top:3px;">'+escapeHtml(result.best_candidate_reason || "")+'</p></div></div>';
+  }
+  html += '<table class="data-table"><thead><tr><th>Rank</th><th>Name</th><th>Score</th><th>Recommendation</th></tr></thead><tbody>' +
+    (result.final_ranking || []).map(function(r){
+      return '<tr><td>#'+r.rank+'</td><td>'+escapeHtml(r.name)+'</td><td>'+r.overall_score+'</td><td>'+escapeHtml(r.hiring_recommendation)+'</td></tr>';
+    }).join("") + '</tbody></table>';
+
+  html += '<div class="subsection">' + (result.candidates || []).map(function(c){
+    return '<details class="candidate-card"><summary><span>#'+c.rank+' '+escapeHtml(c.name || "Candidate")+'</span><span class="badge badge-neutral">'+c.overall_score+'</span></summary>' +
+      '<div class="candidate-body">' +
+        '<div><h5>Strengths</h5>'+listOrDash(c.strengths)+'</div>' +
+        '<div><h5>Weaknesses</h5>'+listOrDash(c.weaknesses)+'</div>' +
+        '<div><h5>Missing skills</h5>'+listOrDash(c.missing_skills)+'</div>' +
+        '<div><h5>Red flags</h5>'+listOrDash(c.red_flags)+'</div>' +
+        '<div style="grid-column:1/-1;"><h5>Interview questions</h5>'+listOrDash(c.interview_questions)+'</div>' +
+      '</div></details>';
+  }).join("") + '</div>';
+
+  el.innerHTML = html;
+}
+function listOrDash(arr){
+  if (!arr || !arr.length) return '<p style="color:var(--text-faint);">—</p>';
+  return '<ul style="margin:0;padding-left:16px;">' + arr.map(function(x){ return "<li>"+escapeHtml(x)+"</li>"; }).join("") + '</ul>';
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   SETTINGS
+   ════════════════════════════════════════════════════════════════════ */
+function renderSettingsConnections(){
+  const el = document.getElementById("settings-connections");
+  el.innerHTML = ["feedback","hiring","support"].map(function(a){
+    const connected = !!state.tokens[a];
+    return '<div class="agent-row"><div class="agent-row-name"><span class="dot '+(connected?"dot-online":"dot-offline")+'"></span>'+AGENT_META[a].label+'</div>' +
+      '<div class="agent-row-meta"><span class="badge '+(connected?"badge-success":"badge-neutral")+'">'+(connected?"Connected":"Not connected")+'</span></div></div>';
+  }).join("");
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   HELPERS
+   ════════════════════════════════════════════════════════════════════ */
+function emptyStateHTML(icon, title, body){
+  return '<div class="empty-state"><div class="empty-icon">'+icon+'</div><h4>'+escapeHtml(title)+'</h4><p>'+escapeHtml(body)+'</p></div>';
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]; });
+}
+function truncate(s, n){ return s.length > n ? s.slice(0, n) + "…" : s; }
+function formatBytes(bytes){
+  if (bytes == null) return "—";
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + " KB";
+  return (bytes/1024/1024).toFixed(1) + " MB";
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   BOOT
+   ════════════════════════════════════════════════════════════════════ */
+function initGlobalHandlers(){
+  document.getElementById("logout-btn").addEventListener("click", logout);
+  document.getElementById("settings-logout-btn").addEventListener("click", logout);
+  document.getElementById("refresh-overview-btn").addEventListener("click", refreshHealth);
+  document.getElementById("clear-activity-btn").addEventListener("click", function(){
+    localStorage.removeItem(STORAGE_KEYS.activity);
+    renderActivity();
+    toast("Activity log cleared");
+  });
+}
+
+function boot(){
+  loadSession();
+  initAuthScreen();
+  initNavigation();
+  initChat();
+  initHiringAnalyze();
+  initGlobalHandlers();
+
+  if (hasAnySession()){
+    enterApp();
+  }
+}
+
+document.addEventListener("DOMContentLoaded", boot);
+})();
+</script>
+</body>
+</html>

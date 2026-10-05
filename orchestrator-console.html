@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Founder AI — Orchestrator</title>
+<style>
+  :root{
+    --bg:#f7f7f5;
+    --panel:#ffffff;
+    --border:#e0e0dc;
+    --text:#222220;
+    --muted:#767671;
+    --accent:#3b5bdb;
+    --accent-hover:#2f49b3;
+    --ok:#2e7d32;
+    --err:#c0392b;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:var(--font); background:var(--bg); color:var(--text);
+    display:flex; flex-direction:column; height:100vh;
+  }
+  ::-webkit-scrollbar{width:9px;}
+  ::-webkit-scrollbar-thumb{background:#d4d4cf; border-radius:5px;}
+
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 20px; border-bottom:1px solid var(--border); background:var(--panel);
+    flex-shrink:0;
+  }
+  header h1{ font-size:15px; font-weight:600; margin:0; }
+  header .sub{ color:var(--muted); font-weight:400; }
+  header button{
+    background:none; border:1px solid var(--border); color:var(--text);
+    padding:6px 12px; border-radius:6px; font-size:13px; cursor:pointer;
+  }
+  header button:hover{ background:#f0f0ee; }
+
+  #layout{ flex:1; display:flex; min-height:0; }
+
+  #sidebar{
+    width:270px; flex-shrink:0; border-right:1px solid var(--border);
+    background:var(--panel); overflow-y:auto; padding:16px;
+  }
+  #sidebar p.hint{ font-size:12.5px; color:var(--muted); margin:0 0 16px; line-height:1.5; }
+
+  .agent{
+    border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:12px;
+  }
+  .agent-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .agent-top .name{ font-size:13.5px; font-weight:600; }
+  .dot{ width:8px; height:8px; border-radius:50%; background:#ccc; }
+  .dot.ok{ background:var(--ok); }
+  .dot.err{ background:var(--err); }
+
+  .agent input{
+    width:100%; padding:7px 9px; margin-bottom:6px; border:1px solid var(--border);
+    border-radius:5px; font-size:13px; font-family:var(--font); background:#fbfbfa;
+  }
+  .agent input:focus{ outline:none; border-color:var(--accent); background:#fff; }
+
+  .agent button{
+    width:100%; padding:7px; border:none; border-radius:5px; background:var(--accent);
+    color:#fff; font-size:13px; font-weight:600; cursor:pointer;
+  }
+  .agent button:hover{ background:var(--accent-hover); }
+  .agent button:disabled{ opacity:.5; cursor:default; }
+
+  .agent .status{ font-size:12px; margin-top:6px; color:var(--muted); }
+  .agent .status.ok{ color:var(--ok); }
+  .agent .status.err{ color:var(--err); }
+
+  #note{
+    font-size:12px; color:var(--muted); line-height:1.5; padding:10px;
+    border:1px solid var(--border); border-radius:6px; background:#fafaf8;
+  }
+
+  #chat-area{ flex:1; display:flex; flex-direction:column; min-width:0; }
+  #messages{ flex:1; overflow-y:auto; padding:24px 10%; display:flex; flex-direction:column; gap:14px; }
+
+  #empty{ margin:auto; text-align:center; color:var(--muted); max-width:380px; font-size:14px; line-height:1.6; }
+
+  .msg{ max-width:75%; }
+  .msg.user{ align-self:flex-end; }
+  .msg.assistant{ align-self:flex-start; }
+  .msg.system{ align-self:center; }
+
+  .bubble{
+    padding:10px 14px; border-radius:10px; font-size:14.5px; line-height:1.55; white-space:pre-wrap;
+  }
+  .msg.user .bubble{ background:var(--accent); color:#fff; border-bottom-right-radius:3px; }
+  .msg.assistant .bubble{ background:#fff; border:1px solid var(--border); border-bottom-left-radius:3px; }
+  .msg.system .bubble{ background:transparent; border:1px dashed var(--border); color:var(--muted); font-size:13px; }
+  .msg.error .bubble{ border-color:#f0c3bb; background:#fdf1ef; color:var(--err); }
+
+  .tags{ display:flex; gap:5px; margin-top:6px; flex-wrap:wrap; }
+  .tag{
+    font-size:10.5px; padding:2px 8px; border-radius:12px; border:1px solid var(--border);
+    color:var(--muted); background:#f5f5f2;
+  }
+
+  .dots{ display:flex; gap:4px; padding:3px 0; }
+  .dots span{ width:5px; height:5px; border-radius:50%; background:#bbb; animation:b 1.2s infinite ease-in-out; }
+  .dots span:nth-child(2){ animation-delay:.15s; }
+  .dots span:nth-child(3){ animation-delay:.3s; }
+  @keyframes b{ 0%,60%,100%{opacity:.4;} 30%{opacity:1;} }
+
+  #composer{
+    border-top:1px solid var(--border); padding:14px 10%; display:flex; gap:8px; background:var(--panel);
+  }
+  #composer textarea{
+    flex:1; resize:none; padding:10px 12px; border:1px solid var(--border); border-radius:8px;
+    font-family:var(--font); font-size:14px; max-height:120px;
+  }
+  #composer textarea:focus{ outline:none; border-color:var(--accent); }
+  #composer button{
+    padding:0 18px; border:none; border-radius:8px; background:var(--accent); color:#fff;
+    font-size:13.5px; font-weight:600; cursor:pointer;
+  }
+  #composer button:hover:not(:disabled){ background:var(--accent-hover); }
+  #composer button:disabled{ opacity:.5; cursor:default; }
+
+  @media (max-width:800px){
+    #layout{ flex-direction:column; }
+    #sidebar{ width:100%; max-height:38vh; border-right:none; border-bottom:1px solid var(--border); }
+    #messages, #composer{ padding-left:5%; padding-right:5%; }
+    .msg{ max-width:90%; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Founder AI <span class="sub">— Orchestrator</span></h1>
+  <button id="new-thread" type="button">New conversation</button>
+</header>
+
+<div id="layout">
+  <aside id="sidebar">
+    <p class="hint">Sign in to each agent once. Ask a question below and the orchestrator will route it to the right one.</p>
+
+    <div class="agent" data-agent="hiring">
+      <div class="agent-top"><span class="name">Hiring</span><span class="dot"></span></div>
+      <input type="email" class="e" placeholder="Email" autocomplete="username">
+      <input type="password" class="p" placeholder="Password" autocomplete="current-password">
+      <button class="go" type="button">Connect</button>
+      <div class="status">Not connected</div>
+    </div>
+
+    <div class="agent" data-agent="feedback">
+      <div class="agent-top"><span class="name">Feedback</span><span class="dot"></span></div>
+      <input type="email" class="e" placeholder="Email" autocomplete="username">
+      <input type="password" class="p" placeholder="Password" autocomplete="current-password">
+      <button class="go" type="button">Connect</button>
+      <div class="status">Not connected</div>
+    </div>
+
+    <div class="agent" data-agent="support">
+      <div class="agent-top"><span class="name">Support</span><span class="dot"></span></div>
+      <input type="email" class="e" placeholder="Email" autocomplete="username">
+      <input type="password" class="p" placeholder="Password" autocomplete="current-password">
+      <button class="go" type="button">Connect</button>
+      <div class="status">Not connected</div>
+    </div>
+
+    <div id="note">If a connection fails right away, that agent's backend is probably blocking this page. Add this page's URL to ALLOWED_ORIGINS in that agent's .env and rebuild it.</div>
+  </aside>
+
+  <div id="chat-area">
+    <div id="messages">
+      <div id="empty">Connect at least one agent, then ask a question below.</div>
+    </div>
+    <div id="composer">
+      <textarea id="input" rows="1" placeholder="Ask about hiring, feedback, or support…"></textarea>
+      <button id="send" type="button">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const ORCH_URL = "http://127.0.0.1:8000/api/orchestrate";
+  const AGENTS = {
+    hiring:   { url: "http://127.0.0.1:8002/auth/login", header: "x-hiring-token" },
+    feedback: { url: "http://127.0.0.1:8001/api/v1/auth/login", header: "x-feedback-token" },
+    support:  { url: "http://127.0.0.1:8003/api/auth/login", header: "x-support-token" },
+  };
+  const tokens = {};
+  let threadId = null;
+
+  document.querySelectorAll(".agent").forEach(card => {
+    const agent = card.dataset.agent;
+    const btn = card.querySelector(".go");
+    const dot = card.querySelector(".dot");
+    const status = card.querySelector(".status");
+    const emailEl = card.querySelector(".e");
+    const passEl = card.querySelector(".p");
+
+    async function attempt(url, body, form){
+      const res = await fetch(url, {
+        method: "POST",
+        headers: form ? {"Content-Type":"application/x-www-form-urlencoded"} : {"Content-Type":"application/json"},
+        body: form ? body : JSON.stringify(body),
+      });
+      const text = await res.text();
+      let data; try{ data = JSON.parse(text); }catch(e){ data = null; }
+      if(!res.ok){
+        const detail = (data && (data.detail || data.message)) || text || ("HTTP " + res.status);
+        throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
+      }
+      return data;
+    }
+
+    btn.addEventListener("click", async () => {
+      const email = emailEl.value.trim();
+      const password = passEl.value;
+      if(!email || !password){
+        status.textContent = "Enter email and password.";
+        status.className = "status err";
+        return;
+      }
+      btn.disabled = true;
+      status.textContent = "Connecting…";
+      status.className = "status";
+      const cfg = AGENTS[agent];
+      let data = null, err = null;
+      try{
+        data = await attempt(cfg.url, { email, password }, false);
+      }catch(e){
+        err = e;
+        try{
+          const form = new URLSearchParams();
+          form.set("username", email);
+          form.set("password", password);
+          data = await attempt(cfg.url, form.toString(), true);
+        }catch(e2){ err = e2; }
+      }
+      const token = data && (data.access_token || data.token || data.accessToken);
+      btn.disabled = false;
+      if(token){
+        tokens[agent] = token;
+        dot.className = "dot ok";
+        status.textContent = "Connected";
+        status.className = "status ok";
+      }else{
+        dot.className = "dot err";
+        status.textContent = err ? err.message : "Could not sign in.";
+        status.className = "status err";
+      }
+    });
+  });
+
+  const messages = document.getElementById("messages");
+  const empty = document.getElementById("empty");
+  const input = document.getElementById("input");
+  const sendBtn = document.getElementById("send");
+  const newThreadBtn = document.getElementById("new-thread");
+
+  function addMsg({role, text, tags, isError}){
+    if(empty.parentNode) empty.remove();
+    const wrap = document.createElement("div");
+    wrap.className = "msg " + role + (isError ? " error" : "");
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.textContent = text;
+    wrap.appendChild(bubble);
+    if(tags && tags.length){
+      const row = document.createElement("div");
+      row.className = "tags";
+      tags.forEach(t => {
+        const s = document.createElement("span");
+        s.className = "tag";
+        s.textContent = t;
+        row.appendChild(s);
+      });
+      wrap.appendChild(row);
+    }
+    messages.appendChild(wrap);
+    messages.scrollTop = messages.scrollHeight;
+    return wrap;
+  }
+
+  function typingOn(){
+    const wrap = document.createElement("div");
+    wrap.className = "msg assistant";
+    wrap.id = "typing";
+    wrap.innerHTML = '<div class="bubble"><div class="dots"><span></span><span></span><span></span></div></div>';
+    messages.appendChild(wrap);
+    messages.scrollTop = messages.scrollHeight;
+  }
+  function typingOff(){
+    const el = document.getElementById("typing");
+    if(el) el.remove();
+  }
+
+  async function send(){
+    const text = input.value.trim();
+    if(!text) return;
+    if(!Object.keys(tokens).length){
+      addMsg({role:"system", text:"Connect at least one agent first."});
+      return;
+    }
+    addMsg({role:"user", text});
+    input.value = "";
+    input.style.height = "auto";
+    sendBtn.disabled = true;
+    typingOn();
+
+    const headers = {"Content-Type":"application/json"};
+    if(threadId) headers["x-thread-id"] = threadId;
+    Object.entries(AGENTS).forEach(([a, cfg]) => { if(tokens[a]) headers[cfg.header] = tokens[a]; });
+
+    try{
+      const res = await fetch(ORCH_URL, { method:"POST", headers, body: JSON.stringify({message: text, thread_id: threadId}) });
+      const data = await res.json().catch(() => null);
+      typingOff();
+      if(!res.ok){
+        const detail = (data && (data.detail || data.message)) || ("HTTP " + res.status);
+        addMsg({role:"assistant", text:"Error: " + detail, isError:true});
+        return;
+      }
+      threadId = data.thread_id || threadId;
+      addMsg({role:"assistant", text: data.answer || "(no answer)", tags: data.tools_used});
+    }catch(err){
+      typingOff();
+      addMsg({role:"assistant", text:"Couldn't reach the orchestrator: " + err.message, isError:true});
+    }finally{
+      sendBtn.disabled = false;
+    }
+  }
+
+  input.addEventListener("input", () => {
+    input.style.height = "auto";
+    input.style.height = Math.min(input.scrollHeight, 120) + "px";
+  });
+  input.addEventListener("keydown", e => {
+    if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); send(); }
+  });
+  sendBtn.addEventListener("click", send);
+  newThreadBtn.addEventListener("click", () => {
+    threadId = null;
+    messages.innerHTML = "";
+    messages.appendChild(empty);
+    addMsg({role:"system", text:"New conversation started."});
+  });
+})();
+</script>
+</body>
+</html>
