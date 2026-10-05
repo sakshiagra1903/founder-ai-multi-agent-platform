@@ -1,116 +1,445 @@
-README 
+# 🤖 Founder AI — Multi-Agent Startup Operating System
 
-# Founder AI — Complete Multi-Agent System
+> An AI-powered multi-agent platform designed to help startup teams manage customer support, hiring, and feedback workflows through specialized AI agents coordinated by a central orchestrator.
 
-This zip contains 4 things, kept together:
+## 🚀 Overview
+
+Founder AI is a modular **Multi-Agent AI Platform** where different AI agents handle different startup operations.
+
+Instead of using one large AI system for everything, the platform separates responsibilities into specialized agents:
+
+- 🎧 **Support Agent** — Handles customer/support-related workflows
+- 👥 **Hiring Agent** — Assists with hiring-related workflows
+- 💬 **Feedback Agent** — Processes feedback-related workflows
+- 🧠 **Orchestrator** — Coordinates requests and routes them to the appropriate agent
+
+The goal is to provide an AI-powered operating layer for common startup workflows using a modular multi-agent architecture.
+
+---
+
+## 🏗️ Architecture
+
+```text
+                         ┌──────────────────────┐
+                         │       Frontend       │
+                         │   User Interaction   │
+                         └──────────┬───────────┘
+                                    │
+                                    ▼
+                         ┌──────────────────────┐
+                         │     Orchestrator     │
+                         │  Request Routing &   │
+                         │  Agent Coordination  │
+                         └──────────┬───────────┘
+                                    │
+                  ┌─────────────────┼─────────────────┐
+                  │                 │                 │
+                  ▼                 ▼                 ▼
+          ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+          │   Support    │  │   Hiring     │  │   Feedback   │
+          │    Agent     │  │    Agent     │  │    Agent     │
+          └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+                 │                 │                 │
+                 └─────────────────┼─────────────────┘
+                                   ▼
+                         ┌──────────────────────┐
+                         │      AI / LLM        │
+                         │  Agent Intelligence  │
+                         └──────────────────────┘
 ```
-founder-ai-feedback-agent/   ← your original Feedback Agent (completely unchanged)
-founder-ai-final/            ← your original Hiring Agent (completely unchanged)
-support_agent/                ← your original Support Agent (completely unchanged)
-orchestrator/                 ← NEW — the routing layer that integrates them
-docker-compose.yml            ← NEW — runs everything together on non-conflicting ports
+
+---
+
+## ✨ Key Features
+
+### 🧠 Multi-Agent Architecture
+
+The system uses specialized AI agents for different startup functions instead of relying on one monolithic assistant.
+
+### 🎯 Intelligent Request Routing
+
+The Orchestrator acts as the central coordination layer and routes requests to the appropriate agent.
+
+### 🎧 Support Automation
+
+The Support Agent is designed to handle support-oriented interactions and workflows.
+
+### 👥 Hiring Assistance
+
+The Hiring Agent provides AI-powered assistance for hiring-related tasks.
+
+### 💬 Feedback Processing
+
+The Feedback Agent handles feedback-related workflows and transforms input into useful information.
+
+### 🧩 Modular Design
+
+Each major agent is separated into its own service, making the platform easier to maintain and extend.
+
+### 🐳 Dockerized Setup
+
+The project includes Docker and Docker Compose configuration for running multiple services together.
+
+---
+
+# 🛠️ Technology Stack
+
+## Backend
+
+- Python
+- FastAPI
+- REST APIs
+- Pydantic
+
+## AI / LLM
+
+- Groq-compatible LLM integration
+- Multi-Agent Architecture
+- Prompt-based AI workflows
+
+## Frontend
+
+- Next.js
+- React
+- TypeScript
+- HTML / CSS
+
+## Database & Storage
+
+- PostgreSQL
+- Redis
+- ChromaDB
+
+## Infrastructure
+
+- Docker
+- Docker Compose
+
+---
+
+# 📁 Project Structure
+
+```text
+founder-ai-runnable/
+│
+├── founder-ai-feedback-agent/
+│   └── backend/
+│       └── Feedback Agent
+│
+├── founder-ai-final/
+│   ├── backend/
+│   │   └── Hiring Agent
+│   └── frontend/
+│
+├── orchestrator/
+│   └── Orchestrator Service
+│
+├── support_agent/
+│   ├── backend/
+│   │   └── Support Agent
+│   └── frontend/
+│
+├── chat_models.py
+├── docker-compose.yml
+├── orchestrator-console.html
+├── .env.example
+└── README.md
 ```
 
+---
 
-Not a single line was changed inside the original agents — same code, same DB models, same auth, same RAG pipelines, same tools.
+# 🔄 How It Works
 
-## Setup 
+```text
+User Request
+     │
+     ▼
+  Frontend
+     │
+     ▼
+Orchestrator
+     │
+     ├──────────────► Support Agent
+     │
+     ├──────────────► Hiring Agent
+     │
+     └──────────────► Feedback Agent
+                         │
+                         ▼
+                    AI Processing
+                         │
+                         ▼
+                      Response
+                         │
+                         ▼
+                        User
+```
 
-### 1. Create a `.env` for each agent 
+### 1. User Request
+
+The user sends a request through the application interface.
+
+### 2. Orchestrator
+
+The Orchestrator receives the request and coordinates the workflow.
+
+### 3. Agent Selection
+
+The request is routed to the appropriate specialized agent.
+
+### 4. AI Processing
+
+The selected agent processes the request using the configured AI/LLM workflow.
+
+### 5. Response
+
+The final response is returned to the user through the application.
+
+---
+
+# ⚙️ Getting Started
+
+## Prerequisites
+
+Make sure you have:
+
+- Python
+- Docker Desktop
+- Docker Compose
+- Node.js
+- Git
+
+installed on your system.
+
+---
+
+## 1. Clone the Repository
+
 ```bash
-cd founder-ai-feedback-agent/backend && cp .env.example .env   # add your Groq/OpenAI key
-cd ../../founder-ai-final/backend      && cp .env.example .env   # add your Groq/OpenAI key
-cd ../../support_agent                 && cp .env.example .env   # add your Groq/OpenAI key
+git clone https://github.com/sakshiagra1903/founder-ai-multi-agent-platform.git
 ```
 
+Move into the project:
 
-### 2. Create the orchestrator's `.env`
 ```bash
-cd ../orchestrator
-cp .env.example .env
+cd founder-ai-multi-agent-platform
 ```
-Open `.env` and put your Groq key in `GROQ_API_KEY=` 
 
-### 3. Run everything together
-From the root folder 
-```bash
-docker compose up --build
-```
-The first build will take a little time since images need to build.
+---
 
-## What runs where
+## 2. Configure Environment Variables
 
- Service 
- Orchestrator  http://localhost:8000 
- Feedback backend  http://localhost:8001 
- Hiring backend  http://localhost:8002 
- Support backend http://localhost:8003 
- Feedback frontend  http://localhost:3001 
- Hiring frontend  http://localhost:3002 
- Support frontend  http://localhost:3003 
+The repository contains `.env.example` files as configuration templates.
 
- How to test
+Create your local `.env` file from the example:
 
-1. Go to any agent's frontend (3001/3002/3003) and sign up/log in normally — just like before.
-2. Send the JWT token you got from that login to the orchestrator:
-bash
-
-The orchestrator will decide on its own whether this question belongs to support/feedback/hiring, and will call that agent's existing backend to get the answer.
-
-For full details, see `orchestrator/README.md`.
-
-
-
-
-
-## Windows / PowerShell — easiest run
-
-1. Open this folder in VS Code.
-2. Open `/.env` and replace:
-   `PASTE_YOUR_GROQ_API_KEY_HERE`
-   with your Groq API key.
-3. Make sure Docker Desktop is running.
-4. In PowerShell, from this folder run:
+### Windows PowerShell
 
 ```powershell
-docker compose down -v
-docker compose up --build -d
+Copy-Item .env.example .env
 ```
 
-5. Check containers:
+Then add your own API credentials.
 
-```powershell
-docker compose ps
-docker compose logs -f orchestrator
+Example:
+
+```env
+GROQ_API_KEY=your_groq_api_key_here
 ```
 
-6. Open the main frontend:
-   `http://localhost:8000`
+> ⚠️ Never commit real API keys or `.env` files to GitHub.
 
-The upgraded package now uses the orchestrator's built-in frontend at port 8000.
-The specialist frontends are also available:
-- Feedback: http://localhost:3001
-- Hiring: http://localhost:3002
-- Support: http://localhost:3003
+---
 
-Backends:
-- Orchestrator: http://localhost:8000
-- Feedback: http://localhost:8001
-- Hiring: http://localhost:8002
-- Support: http://localhost:8003
+# 🐳 Running with Docker
 
-Health checks:
-- http://localhost:8000/health
-- http://localhost:8000/api/agents/health
+Make sure Docker Desktop is running.
 
-### Important
-The root `docker-compose.yml` no longer requires four missing `.env` files inside the individual projects. All four services receive the shared Groq key from the root `/.env`.
+### Build the services
 
-If a container already exists with an old conflicting name, run:
-
-```powershell
-docker compose down -v --remove-orphans
-docker compose up --build -d
+```bash
+docker compose build
 ```
 
-Do not run the three original agents' individual `docker-compose.yml` files at the same time, because those files publish overlapping host ports such as 8000/5432/6379. Use the root `docker-compose.yml` for the complete system.
+### Start the application
+
+```bash
+docker compose up
+```
+
+### Run in background
+
+```bash
+docker compose up -d
+```
+
+### Stop the application
+
+```bash
+docker compose down
+```
+
+### Rebuild from scratch
+
+```bash
+docker compose build --no-cache
+docker compose up
+```
+
+---
+
+# 🔐 Environment Variables
+
+Sensitive credentials should be stored locally.
+
+The repository only contains example configuration files.
+
+Example:
+
+```env
+GROQ_API_KEY=your_groq_api_key_here
+```
+
+**Do not upload your real API key to GitHub.**
+
+---
+
+# 🧪 Development Workflow
+
+A typical development workflow is:
+
+```text
+Modify Agent
+     │
+     ▼
+Run Service
+     │
+     ▼
+Test API
+     │
+     ▼
+Test Frontend
+     │
+     ▼
+Test Through Orchestrator
+```
+
+Each agent can be developed and tested independently while the Orchestrator provides the central coordination layer.
+
+---
+
+# 📌 Available Agents
+
+| Agent | Responsibility |
+|---|---|
+| 🧠 Orchestrator | Coordinates and routes requests |
+| 🎧 Support Agent | Support-related workflows |
+| 👥 Hiring Agent | Hiring-related workflows |
+| 💬 Feedback Agent | Feedback-related workflows |
+
+---
+
+# 🔮 Future Improvements
+
+The architecture can be extended with additional specialized agents:
+
+- 📅 Meeting Agent
+- 📊 Analytics Agent
+- 📢 Marketing Agent
+- 💰 Finance Agent
+- 📋 Task Management Agent
+- 📧 Email Agent
+- 📄 Document Processing Agent
+
+Potential future improvements include:
+
+- Agent memory
+- Advanced RAG pipelines
+- Role-Based Access Control
+- Authentication and authorization
+- Agent monitoring and observability
+- Agent evaluation
+- Human-in-the-loop workflows
+- Cloud deployment
+- Production-grade logging
+
+---
+
+# 🎯 Why Multi-Agent AI?
+
+Startups have many different repetitive workflows.
+
+A multi-agent architecture allows each AI agent to specialize in a particular business function.
+
+```text
+                    Founder AI
+                        │
+                        ▼
+                  Orchestrator
+                        │
+          ┌─────────────┼─────────────┐
+          ▼             ▼             ▼
+       Support        Hiring       Feedback
+        Agent          Agent         Agent
+```
+
+This approach makes the platform:
+
+- Modular
+- Extensible
+- Easier to maintain
+- Easier to test
+- Easier to expand with new agents
+
+---
+
+# 📊 Project Highlights
+
+### Architecture
+
+- Multi-Agent System
+- Central Orchestration Layer
+- Modular Agent Services
+- Service-based architecture
+
+### AI
+
+- LLM-powered workflows
+- Specialized AI agents
+- Prompt-based task processing
+
+### Software Engineering
+
+- REST APIs
+- Dockerized services
+- Frontend/backend separation
+- Environment-based configuration
+- Modular project structure
+
+---
+
+# 👩‍💻 Author
+
+## Sakshi Agrawal
+
+**B.Tech — Artificial Intelligence & Machine Learning**
+
+### GitHub
+
+https://github.com/sakshiagra1903
+
+### LinkedIn
+
+https://linkedin.com/in/sakshi-agrawal-088699329
+
+---
+
+# ⭐ Support
+
+If you find this project useful, consider giving the repository a ⭐ on GitHub.
+
+---
+
+# 📜 License
+
+This project is intended for educational, development, and demonstration purposes.
