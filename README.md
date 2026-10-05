@@ -428,9 +428,6 @@ This approach makes the platform:
 
 https://github.com/sakshiagra1903
 
-### LinkedIn
-
-https://linkedin.com/in/sakshi-agrawal-088699329
 
 ---
 
@@ -443,3 +440,11 @@ If you find this project useful, consider giving the repository a ⭐ on GitHub.
 # 📜 License
 
 This project is intended for educational, development, and demonstration purposes.
+## 🎥 Project Demo
+
+A complete demonstration of the Founder AI Multi-Agent Platform.
+
+> The demo showcases the multi-agent architecture, orchestrator, and specialized Support, Hiring, and Feedback agents.
+
+🎬 **Project Demo Video:**  
+[Watch the Founder AI Demo](./WhatsApp%20Video%202026-10-04%20at%208.55.35%20PM.mp4)
